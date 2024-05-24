@@ -1,11 +1,6 @@
 package com.example.application.services;
 
-import com.example.application.data.Company;
-import com.example.application.data.Contact;
-import com.example.application.data.Status;
-import com.example.application.data.CompanyRepository;
-import com.example.application.data.ContactRepository;
-import com.example.application.data.StatusRepository;
+import com.example.application.data.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,13 +11,16 @@ public class CrmService {
     private final ContactRepository contactRepository;
     private final CompanyRepository companyRepository;
     private final StatusRepository statusRepository;
+    private final KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository;
 
     public CrmService(ContactRepository contactRepository,
                       CompanyRepository companyRepository,
-                      StatusRepository statusRepository) {
+                      StatusRepository statusRepository,
+                      KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository) {
         this.contactRepository = contactRepository;
         this.companyRepository = companyRepository;
         this.statusRepository = statusRepository;
+        this.kolposkopijaIzmeklejumsRepository = kolposkopijaIzmeklejumsRepository;
     }
 
     public List<Contact> findAllContacts(String stringFilter) {
@@ -48,7 +46,13 @@ public class CrmService {
         }
         contactRepository.save(contact);
     }
-
+    public void saveVisit(KolposkopijaIzmeklejumsEntity entity) {
+        if (entity == null) {
+            System.err.println("Visit data is null. Are you sure you have connected your form to the application?");
+            return;
+        }
+        kolposkopijaIzmeklejumsRepository.save(entity);
+    }
     public List<Company> findAllCompanies() {
         return companyRepository.findAll();
     }
