@@ -4,6 +4,7 @@ import com.example.application.data.Contact;
 import com.example.application.services.CrmService;
 import com.example.application.views.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -19,7 +20,7 @@ import org.springframework.context.annotation.Scope;
 @SpringComponent
 @Scope("prototype")
 @PermitAll
-@Route(value = "", layout = MainLayout.class)
+@Route(value = "list", layout = MainLayout.class)
 @PageTitle("Contacts | Vaadin CRM")
 public class ListView extends VerticalLayout {
     Grid<Contact> grid = new Grid<>(Contact.class);
@@ -87,9 +88,11 @@ public class ListView extends VerticalLayout {
         filterText.addValueChangeListener(e -> updateList());
 
         Button addContactButton = new Button("Add contact");
+        Button selectPatientButton = new Button("Select Patient");
         addContactButton.addClickListener(click -> addContact());
+        selectPatientButton.addClickListener(click -> UI.getCurrent().navigate("addVisit"));
 
-        var toolbar = new HorizontalLayout(filterText, addContactButton);
+        var toolbar = new HorizontalLayout(filterText, addContactButton, selectPatientButton);
         toolbar.addClassName("toolbar");
         return toolbar;
     }

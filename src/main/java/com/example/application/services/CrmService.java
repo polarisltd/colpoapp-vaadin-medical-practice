@@ -12,15 +12,20 @@ public class CrmService {
     private final CompanyRepository companyRepository;
     private final StatusRepository statusRepository;
     private final KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository;
-
+    private final PatientsRepository patientsRepository;
+    private final DakterisRepository drRepository;
     public CrmService(ContactRepository contactRepository,
                       CompanyRepository companyRepository,
                       StatusRepository statusRepository,
-                      KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository) {
+                      KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository,
+                      PatientsRepository patientsRepository,
+                      DakterisRepository drRepository  ) {
         this.contactRepository = contactRepository;
         this.companyRepository = companyRepository;
         this.statusRepository = statusRepository;
         this.kolposkopijaIzmeklejumsRepository = kolposkopijaIzmeklejumsRepository;
+        this.patientsRepository = patientsRepository;
+        this.drRepository = drRepository;
     }
 
     public List<Contact> findAllContacts(String stringFilter) {
@@ -30,7 +35,20 @@ public class CrmService {
             return contactRepository.search(stringFilter);
         }
     }
-
+    public List<PacientsEntity> findAllPatients(String stringFilter) {
+        if (stringFilter == null || stringFilter.isEmpty()) {
+            return patientsRepository.findAll();
+        } else {
+            return patientsRepository.search(stringFilter);
+        }
+    }
+    public List<DakterisEntity> findAllDrs(String stringFilter) {
+        if (stringFilter == null || stringFilter.isEmpty()) {
+            return drRepository.findAll();
+        } else {
+            return drRepository.search(stringFilter);
+        }
+    }
     public long countContacts() {
         return contactRepository.count();
     }

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,13 +20,19 @@ public class SecurityConfig extends VaadinWebSecurity { // <2>
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
         http.authorizeHttpRequests(auth ->
                 auth.requestMatchers(
-                    AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/images/*.png")).permitAll());  // <3>
+                    AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/images/*.png")
+                ).permitAll());
+        // <3>
         super.configure(http);
         setLoginView(http, LoginView.class); // <4>
     }
-
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizerH2Console() {
+        return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/h2-console/**"));
+    }
     @Bean
     public UserDetailsService users() {
         UserDetails user = User.builder()

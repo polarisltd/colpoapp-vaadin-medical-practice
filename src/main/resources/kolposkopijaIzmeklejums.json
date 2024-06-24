@@ -1,0 +1,53 @@
+{
+  "relsdemoApp": {
+    "kolposkopijaIzmeklejums": {
+      "home": {
+        "title": "Kolposkopija Izmeklejums",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Kolposkopija Izmeklejums",
+        "createOrEditLabel": "Create or edit a Kolposkopija Izmeklejums",
+        "search": "Search for Kolposkopija Izmeklejums",
+        "notFound": "No Kolposkopija Izmeklejums found"
+      },
+      "created": "A new Kolposkopija Izmeklejums is created with identifier {{ param }}",
+      "updated": "A Kolposkopija Izmeklejums is updated with identifier {{ param }}",
+      "deleted": "A Kolposkopija Izmeklejums is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Kolposkopija Izmeklejums {{ id }}?"
+      },
+      "detail": {
+        "title": "Kolposkopija Izmeklejums"
+      },
+      "id": "ID",
+      "text": "Text",
+      "izmeklejumaNr": "Izmeklejuma Nr",
+      "izmeklejumaDatums": "Izmeklejuma Datums",
+      "vizitesAtkartojums": "Vizites Atkartojums",
+      "skriningaNr": "Skrininga Nr",
+      "anamneze": "Anamneze",
+      "iepriekshVeiktaTerapija": "Ieprieksh Veikta Terapija",
+      "alergijas": "Alergijas",
+      "trnsformacijasZonasTips": "Trnsformacijas Zonas Tips",
+      "p1": "P 1",
+      "p2": "P 2",
+      "p3": "P 3",
+      "p4": "P 4",
+      "p5": "P 5",
+      "p1text": "1p. Robežas asas bet neregulāras formas, robotas, 'ģeogrāfiskā kontūra, Satelītu bojājumi iet pāri TZ':",
+      "p2text": "2p. Izteikti blāva, necaurspīdīga, AB (Austeru Balta):",
+      "p3text": "2p. Rupja punktuācija:",
+      "p4text": "2p. >15mm vai aizņem 3-4 kvadrantus, neskaidra izplatība endocervikālī",
+      "p5text": "2p. Negatīva lugola prove (LN) - dzeltena krāsa",
+      "mtext": "Manipulācijas vizītes laikā:",
+      "m1": "M 1",
+      "m2": "M 2",
+      "m3": "M 3",
+      "rezultati": "Rezultati",
+      "sledziens": "Sledziens",
+      "nakosaKolposkopijasKontrole": "Nakosa Kolposkopijas Kontrole",
+      "dakteris": "Dakteris",
+      "pacients": "Pacients",
+      "configText": "Config Text"
+    }
+  }
+}
