@@ -9,17 +9,24 @@ public class DataLoader implements CommandLineRunner {
 
     private DakterisRepository drRepository;
     private PatientsRepository ptRepository;
-
+    private ImageRepository imRepository;
+    private KolposkopijaIzmeklejumsRepository visitRepository;
     public DataLoader(DakterisRepository drRepository,
-                      PatientsRepository ptRepository) {
+                      PatientsRepository ptRepository,
+                      ImageRepository imRepository,
+                      KolposkopijaIzmeklejumsRepository visitRepository ){
         this.drRepository = drRepository;
         this.ptRepository = ptRepository;
+        this.imRepository = imRepository;
+        this.visitRepository = visitRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
         loadDrs();
         loadPacients();
+        loadVisit();
+        loadImages();
     }
 
 
@@ -43,4 +50,29 @@ public class DataLoader implements CommandLineRunner {
             ptRepository.save(pacientsEntity);
         }
     }
+
+    private void loadVisit() {
+        if(visitRepository.count()==0) {
+            KolposkopijaIzmeklejumsEntity visitEntity = KolposkopijaIzmeklejumsEntity.builder()
+                    .id(1L)
+                    .dakteris(drRepository.findById(1L).get())
+                    .pacients(ptRepository.findById(1L).get())
+                    .build();
+            visitRepository.save(visitEntity);
+        }
+    }
+
+    private void loadImages() {
+        if(imRepository.count()==0) {
+            ImageEntity imagesEntity = ImageEntity.builder()
+                    .id(1)
+                    .visitId(1)
+                    .imagePath("C:\\Users\\polar\\Downloads\\001\\pog009-3.jpg")
+                    .build();
+            imRepository.save(imagesEntity);
+        }
+    }
+
+
+
 }

@@ -1,9 +1,14 @@
 package com.example.application.views;
 
+import com.example.application.data.ImageEntity;
+import com.example.application.data.ImageRepository;
 import com.example.application.data.KolposkopijaIzmeklejumsEntity;
 import com.example.application.data.SharedData;
 import com.example.application.data.enumeration.ViziteAtkartojumsEnum;
 import com.example.application.services.CrmService;
+import com.example.application.system.AppProperties;
+import com.example.application.system.ResourceBundleControl;
+import com.example.application.system.StaticTexts;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -11,7 +16,6 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
@@ -20,38 +24,40 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
-import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
+import java.util.ResourceBundle;
 
 @PermitAll
 @Route(value = "addVisit/:drId?([0-9]+)/:ptId?([0-9]+)", layout = MainLayout.class)
-
 @PageTitle("Visit | Colposcope app")
-public class PatientVisitView extends FormLayout implements BeforeEnterObserver  { //implements HasUrlParameter<String>
+public class PatientVisitView extends FormLayout implements BeforeEnterObserver { //implements HasUrlParameter<String>
     TextField izmeklejumaNr = new TextField("Izmeklējuma Nr");
     DatePicker izmeklejumaDatums = new DatePicker("Izmeklējuma Datums");
     ComboBox<ViziteAtkartojumsEnum> vizitesAtkartojums = new ComboBox<>("Vizites Atkartojums");
@@ -60,28 +66,28 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextField iepriekshVeiktaTerapija = new TextField("Iepriekš Veikta Terapija");
     Checkbox alergijas = new Checkbox("Alergijas");
     TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips");
-    Text p1label = new Text(getTranslation("P1.label"));
-    Checkbox p1 = new Checkbox(getTranslation("P1"));
-    Text p2label = new Text(getTranslation("P2.label"));
-    Checkbox p2 = new Checkbox(getTranslation("P2"));
-    Text p3label = new Text(getTranslation("P3.label"));
-    Checkbox p3 = new Checkbox(getTranslation("P3"));
-    Text p4label = new Text(getTranslation("P4.label"));
-    Checkbox p4 = new Checkbox(getTranslation("P4"));
-    Text p5label = new Text(getTranslation("P5.label"));
-    Checkbox p5 = new Checkbox(getTranslation("P5"));
-    Checkbox m1 = new Checkbox(getTranslation("M1"));
-    Checkbox m2 = new Checkbox(getTranslation("M2"));
-    Checkbox m3 = new Checkbox(getTranslation("M3"));
-    TextArea rezultati = new TextArea("Rezultati");
-    TextArea sledziens = new TextArea("Sledziens");
-    TextField nakosaKolposkopijasKontrole = new TextField("Nakosa Kolposkopijas Kontrole");
+    Text p1label = new Text(StaticTexts.P1label);
+    Checkbox p1 = new Checkbox(StaticTexts.P1);
+    Text p2label = new Text(StaticTexts.P2label);
+    Checkbox p2 = new Checkbox(StaticTexts.P2);
+    Text p3label = new Text(StaticTexts.P3label);
+    Checkbox p3 = new Checkbox(StaticTexts.P3);
+    Text p4label = new Text(StaticTexts.P4label);
+    Checkbox p4 = new Checkbox(StaticTexts.P4);
+    Text p5label = new Text(StaticTexts.P5label);
+    Checkbox p5 = new Checkbox(StaticTexts.P5);
+    Checkbox m1 = new Checkbox(StaticTexts.M1);
+    Checkbox m2 = new Checkbox(StaticTexts.M2);
+    Checkbox m3 = new Checkbox(StaticTexts.M3);
+    TextArea rezultati = new TextArea("Rezultāti");
+    TextArea sledziens = new TextArea("Slēdziens");
+    TextField nakosaKolposkopijasKontrole = new TextField("Nākošā Kolposkopijas Kontrole");
     //VerticalLayout imagesLayout = new VerticalLayout();
-    Grid<ImageItem> imageGrid = new Grid<>();
-    List<ImageItem> images = setupImages();
-    Button save = new Button("Save");
+    Button save = new Button("Save (F9)");
     Button close = new Button("Cancel");
     Button btnPatientSelector = new Button("Pacients");
+
+    VerticalLayout imagesLayout = new VerticalLayout();
     Binder<KolposkopijaIzmeklejumsEntity> binder = new BeanValidationBinder<>(KolposkopijaIzmeklejumsEntity.class);
 
     CrmService service;
@@ -91,19 +97,42 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Integer drId;
     Integer ptId;
 
+    ResourceBundle bundle;
+
+    Long currentVisitId = null;
+
+    final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
+
+    @Autowired
+    private ImageRepository imageRepository;
+    @Autowired
+    private Environment env;
+
+    @Value("${watcherpath}")
+    private String watcherSercvicePath;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PatientVisitView.class);
+
     public PatientVisitView(CrmService service
             , SharedData sharedData
     ) {
 
         this.service = service;
         this.sharedData = sharedData;
-        watchDirectory("c:/far");
+
+        watcherSercvicePath = AppProperties.watcherSercvicePath;
+        if(watcherSercvicePath == null){
+            watcherSercvicePath = "c:/far/images";
+        }
+
+        watchDirectory(watcherSercvicePath);
         addClassName("patient-visit-view");
         binder.forField(izmeklejumaDatums)
                 .withConverter(
                         new Converter<LocalDate, Instant>() {
                             public Result<Instant> convertToModel(LocalDate fieldValue, ValueContext context) {
-                                return Result.ok(fieldValue.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+                                return Result.ok((fieldValue == null ? LocalDate.now() : fieldValue).atStartOfDay(ZoneId.systemDefault()).toInstant());
                             }
 
                             public LocalDate convertToPresentation(Instant modelValue, ValueContext context) {
@@ -127,22 +156,15 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 new Div(m3));
         mParentDiv.getStyle().set("border", "1px solid black");
 
-        setupImages();
-        imageGrid.addColumn(
-                LitRenderer
-                        .<ImageItem>of(
-                                "<div><img style='height: 80px; width: 80px;' src=${item.imagedata} alt=${item.name}></div>"
-                        )
-                        .withProperty("imagedata", item -> getImageAsBase64(item.getImage()))
-                        .withProperty("name", ImageItem::getId)
-        );
-        imageGrid.setItems(images);
+        sampleImage();  // add sample to imagesLayout
 
-        add(getFormTitle(), izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze, iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
+        add(getFormTitle(), izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
+                iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
                 pParentDiv,
                 mParentDiv,
                 rezultati, sledziens, nakosaKolposkopijasKontrole,
-                imageGrid,
+                imagesLayout,
+                addRefreshButton(),
                 createButtonsLayout());
         KolposkopijaIzmeklejumsEntity visit = new KolposkopijaIzmeklejumsEntity();
         LocalDate currentDate = LocalDate.now();
@@ -153,24 +175,97 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.addCloseListener(e -> closeEditor());
     }
 
-    List<ImageItem> setupImages(){
-        ArrayList<ImageItem> images = new ArrayList<>();
-        images.add(new ImageItem(loadImageFromFile("C:\\Users\\polar\\Downloads\\001\\pog009-3.jpg")));
-        return images;
+    String getTranslation1(String key) {
+        if (this.bundle == null) {
+            this.bundle = ResourceBundle.getBundle("messages/messages_en", new ResourceBundleControl());
+        }
+        return bundle.getString(key);
     }
+
+    Component addRefreshButton() {
+
+        //layout.removeAll();
+        Button refreshButton = new Button("Refresh Images (F8)");
+        refreshButton.addClickShortcut(Key.F8);
+
+        refreshButton.addClickListener(e -> {
+            refreshImagesLayout();
+        });
+        return refreshButton;
+    }
+
+
+
+    void refreshImagesLayout() {
+        // Clear the layout
+        LOGGER.info("Refreshing images for visit id: %s saved!".formatted(this.currentVisitId));
+
+        this.imagesLayout.removeAll();
+
+        sampleImage();
+
+        // Fetch images from the database
+        List<ImageEntity> imageEntities = imageRepository.findByVisitId((this.currentVisitId!=null)?this.currentVisitId.intValue():0);
+        imageEntities.forEach(imageEntity -> {
+            addImage(imageEntity.getImagePath());
+        });
+    }
+
+    void sampleImage() {
+        List.of(SAMPLE_IMAGE_PATH).forEach(imagePath -> {
+            StreamResource resource = new StreamResource("image", () -> {
+                try {
+                    return new FileInputStream(new File(imagePath));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            });
+            Image image = new Image(resource, "alt text");
+            image.setWidth("400px");  // Set the width of the image to 400 pixels
+            this.imagesLayout.add(image);
+        });
+    }
+
+
+    void addImage(String imagePath) {
+            LOGGER.info("Loading image from path: %s".formatted(imagePath));
+            StreamResource resource = new StreamResource("image", () -> {
+                try {
+                    return new FileInputStream(new File(imagePath));
+                } catch (FileNotFoundException e) {
+                    LOGGER.error("error reading image",e);
+                    return null;
+                }
+            });
+            Image image = new Image(resource, "image from db");
+            image.setWidth("400px");  // Set the width of the image to 400 pixels
+            this.imagesLayout.add(image);
+    }
+
 
     private void saveVisit(SaveEvent event) {
         var entity = event.getEntity();
         try {
-            entity.setDakteris(sharedData.getSelectedDoctor());
-            entity.setPacients(sharedData.getSelectedPatient());
-            service.saveVisit(entity);
-            closeEditor();
+            saveVisit(entity);
+            Notification.show("Visit saved", 3000, Notification.Position.MIDDLE);
+            //closeEditor();
         }catch (Exception e) {
             Notification.show("error: %s".formatted(e.getMessage()), 3000, Notification.Position.MIDDLE);
+
         }
 
     }
+
+    private void saveVisit(KolposkopijaIzmeklejumsEntity entity){
+        entity.setDakteris(sharedData.getSelectedDoctor());
+        entity.setPacients(sharedData.getSelectedPatient());
+        KolposkopijaIzmeklejumsEntity savedEntity = service.saveVisit(entity);
+        this.currentVisitId = savedEntity.getId();
+        LOGGER.info("Visit ID: %s saved!".formatted(this.currentVisitId));
+    }
+
+
     private void closeEditor() {
         this.setVisit(null);
         this.setVisible(false);
@@ -200,6 +295,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         close.addClickShortcut(Key.ESCAPE);
 
         save.addClickListener(event -> validateAndSave());
+        save.addClickShortcut(Key.KEY_S, KeyModifier.CONTROL);
+        save.addClickShortcut(Key.F9);
 
         close.addClickListener(event -> fireEvent(new CloseEvent(this)));
 
@@ -259,17 +356,8 @@ public void beforeEnter(BeforeEnterEvent event) {
     }
 
 
-    private byte[] loadImageFromFile(String filePath) {
-//        String filePath = "c:\\images\\pog009-3.jpg";
-        try {
-            return Files.readAllBytes(Paths.get(filePath));
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return Base64.getDecoder().decode(TRANSPARENT_GIF_1PX);
-        }
-    }
-
     private void watchDirectory(String directoryPath) {
+        LOGGER.info("Watching directory: %s".formatted(directoryPath));
         try {
             WatchService watchService = FileSystems.getDefault().newWatchService();
             Path path = Paths.get(directoryPath);
@@ -283,11 +371,16 @@ public void beforeEnter(BeforeEnterEvent event) {
                             if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                                 Path newPath = ((WatchEvent<Path>)event).context();
                                 String newFilePath = Paths.get(directoryPath, newPath.toString()).toString();
-                                var image = loadImageFromFile(newFilePath);
-                                images.add(new ImageItem(image));
                                 System.out.println("New file created: " + newFilePath);
-                                imageGrid.setItems(images);
-                            }
+                                if(this.currentVisitId != null) {
+                                    imageRepository.save(ImageEntity.builder()
+                                            .visitId(this.currentVisitId.intValue())
+                                            .imagePath(newFilePath).build()); //(, this.currentVisitId.intValue()));
+                                }else{
+
+                                    LOGGER.error("Cant save image. Save Visit first");
+                                }
+                                }
                         }
                         key.reset();
                     }
@@ -301,15 +394,7 @@ public void beforeEnter(BeforeEnterEvent event) {
             e.printStackTrace();
         }
     }
-    private static String TRANSPARENT_GIF_1PX =
-            "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=";
-    private String getImageAsBase64(byte[] string) {
-        String mimeType = "image/png";
-        String htmlValue = null;
-        if (string == null) htmlValue = TRANSPARENT_GIF_1PX; else htmlValue =
-                "data:" + mimeType + ";base64," + Base64.getEncoder().encodeToString(string);
-        return htmlValue;
-    }
+
     private class ImageItem {
         @Getter
         private byte[] image;

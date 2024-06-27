@@ -64,12 +64,12 @@ public class CrmService {
         }
         contactRepository.save(contact);
     }
-    public void saveVisit(KolposkopijaIzmeklejumsEntity entity) {
+    public KolposkopijaIzmeklejumsEntity saveVisit(KolposkopijaIzmeklejumsEntity entity) {
         if (entity == null) {
             System.err.println("Visit data is null. Are you sure you have connected your form to the application?");
-            return;
+            return null;
         }
-        kolposkopijaIzmeklejumsRepository.save(entity);
+        return kolposkopijaIzmeklejumsRepository.save(entity);
     }
     public List<Company> findAllCompanies() {
         return companyRepository.findAll();
