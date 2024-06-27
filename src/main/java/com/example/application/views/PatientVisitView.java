@@ -1,9 +1,6 @@
 package com.example.application.views;
 
-import com.example.application.data.ImageEntity;
-import com.example.application.data.ImageRepository;
-import com.example.application.data.KolposkopijaIzmeklejumsEntity;
-import com.example.application.data.SharedData;
+import com.example.application.data.*;
 import com.example.application.data.enumeration.ViziteAtkartojumsEnum;
 import com.example.application.services.CrmService;
 import com.example.application.system.AppProperties;
@@ -15,6 +12,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -55,7 +53,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 @PermitAll
-@Route(value = "addVisit/:drId?([0-9]+)/:ptId?([0-9]+)", layout = MainLayout.class)
+@Route(value = "addVisit", layout = MainLayout.class)
 @PageTitle("Visit | Colposcope app")
 public class PatientVisitView extends FormLayout implements BeforeEnterObserver { //implements HasUrlParameter<String>
     TextField izmeklejumaNr = new TextField("Izmeklējuma Nr");
@@ -82,6 +80,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextArea rezultati = new TextArea("Rezultāti");
     TextArea sledziens = new TextArea("Slēdziens");
     TextField nakosaKolposkopijasKontrole = new TextField("Nākošā Kolposkopijas Kontrole");
+    Div divFormTitle = new Div();
     //VerticalLayout imagesLayout = new VerticalLayout();
     Button save = new Button("Save (F9)");
     Button close = new Button("Cancel");
@@ -102,10 +101,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Long currentVisitId = null;
 
     final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
-
-    @Autowired
     private ImageRepository imageRepository;
-    @Autowired
+    private DoctorSelectorRepository doctorSelectorRepository;
     private Environment env;
 
     @Value("${watcherpath}")
@@ -114,11 +111,17 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     private static final Logger LOGGER = LoggerFactory.getLogger(PatientVisitView.class);
 
     public PatientVisitView(CrmService service
-            , SharedData sharedData
+            , SharedData sharedData,
+              ImageRepository imageRepository,
+              DoctorSelectorRepository doctorSelectorRepository,
+              Environment env
     ) {
 
         this.service = service;
         this.sharedData = sharedData;
+        this.imageRepository = imageRepository;
+        this.doctorSelectorRepository = doctorSelectorRepository;
+        this.env = env;
 
         watcherSercvicePath = AppProperties.watcherSercvicePath;
         if(watcherSercvicePath == null){
@@ -158,7 +161,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         sampleImage();  // add sample to imagesLayout
 
-        add(getFormTitle(), izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
+        divFormTitle.add(getFormTitle());
+
+        add(divFormTitle, izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
                 iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
                 pParentDiv,
                 mParentDiv,
@@ -173,6 +178,11 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.setVisit(visit);
         this.addSaveListener(this::saveVisit); // <1>
         this.addCloseListener(e -> closeEditor());
+        UI.getCurrent().setPollInterval(30000); // Polling interval is set in milliseconds
+
+        UI.getCurrent().addPollListener(e -> {
+            refreshImagesLayout();
+        });
     }
 
     String getTranslation1(String key) {
@@ -194,7 +204,21 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         return refreshButton;
     }
 
-
+    Component addPatientSelectionButton() {
+        Button openDialogButton = new Button("Patient selector");
+        openDialogButton.addClickListener(event -> {
+            Dialog dialog = new Dialog();
+            dialog.addDetachListener(evt -> {
+                divFormTitle.removeAll();
+                divFormTitle.add(getFormTitle());
+            });
+            PatientSelectorView patientSelectionView = new PatientSelectorView(sharedData, service);
+            patientSelectionView.setDialog(dialog);
+            dialog.add(patientSelectionView);
+            dialog.open();
+        });
+        return openDialogButton;
+    }
 
     void refreshImagesLayout() {
         // Clear the layout
@@ -273,6 +297,18 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     }
 
     Component getFormTitle() {
+//        var dakterisSelector = doctorSelectorRepository.search()
+//                .stream()
+//                .findFirst()
+//                .orElse(null);
+
+        DakterisEntity dakterisEntity = doctorSelectorRepository.search()
+                .stream()
+                .map(DakterisSelectorEntity::getDakterisEntity) // Extract DakterisEntity from DakterisSelectorEntity
+                .findFirst()
+                .orElse(null);
+        sharedData.setSelectedDoctor(dakterisEntity);
+
         var dr = (sharedData.getSelectedDoctor()!=null)?
                 "Dr. %s".formatted(sharedData.getSelectedDoctor().getVardsUzvardsDakteris()):
                 "";
@@ -304,7 +340,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
-        return new HorizontalLayout(btnPatientSelector, save, close);
+        return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton());
     }
 
     private void validateAndSave() {

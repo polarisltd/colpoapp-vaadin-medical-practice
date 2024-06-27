@@ -6,6 +6,7 @@ import com.example.application.services.CrmService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -21,7 +22,7 @@ import java.util.Map;
 
 import static com.example.application.views.PatientVisitView.DOCTOR_ID_ROUTE_PARAM;
 import static com.example.application.views.PatientVisitView.PATIENT_ID_ROUTE_PARAM;
-
+import java.util.Optional;
 @PermitAll
 @Route(value = "patient/selector", layout = MainLayout.class)
 @PageTitle("Select Patient | Colposcope app")
@@ -34,12 +35,16 @@ public class PatientSelectorView extends VerticalLayout {
     private final Button btnAdd = new Button("Add Patient");
     final private CrmService service;
     final private SharedData sharedData;
+    private Dialog dialog = null;
     public PatientSelectorView(SharedData sharedData, CrmService service) {
         this.service = service;
         this.sharedData = sharedData;
         configureGrid();
         add(getToolbar(), grid, btnClose);
+    }
 
+    public void setDialog(Dialog dialog) {
+        this.dialog = dialog;
     }
 
     private void configureGrid() {
@@ -51,32 +56,34 @@ public class PatientSelectorView extends VerticalLayout {
         grid.setWidth("60%");
         grid.setColumns("vardsUzvardsPacients", "personasKods");
         btnSelectPatient.addClickListener(e -> {
-            var selected = grid.asSingleSelect().getValue();
-            if(selected == null) {
-                Notification.show("Please select a patient", 3000, Notification.Position.MIDDLE);
-                return;
-            }
-            if(sharedData.getSelectedDoctor() == null) {
-                Notification.show("Please select a doctor on beforehand", 3000, Notification.Position.MIDDLE);
-                return;
-            }
-            sharedData.setSelectedPatient(selected);
-            navigateToVisitEntryForm(sharedData.getSelectedDoctor().getId(), sharedData.getSelectedPatient().getId());
+            selectPatient();
         });
-        btnClose.addClickListener(e -> {
-            grid.deselectAll();
-            sharedData.setSelectedPatient(null);
-            UI.getCurrent().navigate(DashboardView.class);
-        });
+
+        btnClose.addClickListener(e -> Optional.ofNullable(dialog).ifPresent(Dialog::close));
+
         grid.addItemDoubleClickListener(e -> {
-            var selected = grid.asSingleSelect().getValue();
-            if(selected == null) {
-                Notification.show("Please select a patient", 3000, Notification.Position.MIDDLE);
-                return;
-            }
-            sharedData.setSelectedPatient(selected);
-            navigateToVisitEntryForm(sharedData.getSelectedDoctor().getId(), sharedData.getSelectedPatient().getId());
+            selectPatient();
         });
+
+        grid.addComponentColumn(item -> {
+            Button button = new Button("Select");
+            button.addClickListener(click -> {
+                System.out.println("Button clicked for item: " + item);
+                sharedData.setSelectedPatient(item);
+                Optional.ofNullable(dialog).ifPresent(Dialog::close);
+            });
+            return button;
+        }).setHeader("Action");
+    }
+
+    void selectPatient(){
+        var selected = grid.asSingleSelect().getValue();
+        if(selected == null) {
+            Notification.show("Please select a patient", 3000, Notification.Position.MIDDLE);
+        }else {
+            sharedData.setSelectedPatient(selected);
+            Optional.ofNullable(dialog).ifPresent(Dialog::close);
+        }
     }
 
     public void navigateToVisitEntryForm(Long drId, Long patientId) {
