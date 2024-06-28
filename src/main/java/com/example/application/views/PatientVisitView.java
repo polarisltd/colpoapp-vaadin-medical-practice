@@ -32,7 +32,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.AbstractEnvironment;
@@ -48,10 +50,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
+
 
 @PermitAll
 @Route(value = "addVisit", layout = MainLayout.class)
@@ -65,19 +70,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextField iepriekshVeiktaTerapija = new TextField("Iepriekš Veikta Terapija");
     Checkbox alergijas = new Checkbox("Alergijas");
     TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips");
-    Text p1label = new Text(StaticTexts.P1label);
-    Checkbox p1 = new Checkbox(StaticTexts.P1);
-    Text p2label = new Text(StaticTexts.P2label);
-    Checkbox p2 = new Checkbox(StaticTexts.P2);
-    Text p3label = new Text(StaticTexts.P3label);
-    Checkbox p3 = new Checkbox(StaticTexts.P3);
-    Text p4label = new Text(StaticTexts.P4label);
-    Checkbox p4 = new Checkbox(StaticTexts.P4);
-    Text p5label = new Text(StaticTexts.P5label);
-    Checkbox p5 = new Checkbox(StaticTexts.P5);
-    Checkbox m1 = new Checkbox(StaticTexts.M1);
-    Checkbox m2 = new Checkbox(StaticTexts.M2);
-    Checkbox m3 = new Checkbox(StaticTexts.M3);
     TextArea rezultati = new TextArea("Rezultāti");
     TextArea sledziens = new TextArea("Slēdziens");
     TextField nakosaKolposkopijasKontrole = new TextField("Nākošā Kolposkopijas Kontrole");
@@ -88,6 +80,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Button btnPatientSelector = new Button("Pacients");
 
     VerticalLayout imagesLayout = new VerticalLayout();
+    Div pointsDiv = new Div();
+
     Binder<KolposkopijaIzmeklejumsEntity> binder = new BeanValidationBinder<>(KolposkopijaIzmeklejumsEntity.class);
 
     CrmService service;
@@ -109,6 +103,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Map<String,Object> appProperties;
 
     private String watcherSercvicePath;
+
+    List<GridRow> items;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PatientVisitView.class);
 
@@ -145,28 +141,14 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 .bind(KolposkopijaIzmeklejumsEntity::getIzmeklejumaDatums, KolposkopijaIzmeklejumsEntity::setIzmeklejumaDatums);
         binder.bindInstanceFields(this);
 
-        Div pParentDiv = new Div(
-                new Div(bold(p1label), p1),
-                new Div(bold(p2label), p2),
-                new Div(bold(p3label), p3),
-                new Div(bold(p4label), p4),
-                new Div(bold(p5label), p5));
-        pParentDiv.getStyle().set("border", "1px solid black");
-        Div mParentDiv = new Div(
-                bold(new Text("Manipulācijas vizītes laikā")),
-                new Div(m1),
-                new Div(m2),
-                new Div(m3));
-        mParentDiv.getStyle().set("border", "1px solid black");
-
         sampleImage();  // add sample to imagesLayout
 
         divFormTitle.add(getFormTitle());
 
         add(divFormTitle, izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
                 iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
-                pParentDiv,
-                mParentDiv,
+                featureGrid(),
+                pointsDiv,
                 rezultati, sledziens, nakosaKolposkopijasKontrole,
                 imagesLayout,
                 addRefreshButton(),
@@ -185,6 +167,15 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         });
     }
 
+
+    void calcPoints(){
+        pointsDiv.removeAll();
+        AtomicInteger count = new AtomicInteger(0);
+        this.items.forEach(item -> {
+            count.addAndGet(item.value);
+        });
+        pointsDiv.add(new Div(new Div("Points: %s".formatted(count.get()))));
+    }
     private Map<String, Object> asProperties(Environment env) {
         return StreamSupport.stream(
                         ((AbstractEnvironment) env).getPropertySources().spliterator(), false)
@@ -199,6 +190,93 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             this.bundle = ResourceBundle.getBundle("messages/messages_en", new ResourceBundleControl());
         }
         return bundle.getString(key);
+    }
+
+    @Builder
+    @Getter
+    @Setter
+    public static class GridRow {
+        private String label;
+        private String option1;
+        private String option2;
+        private String option3;
+        private Checkbox checkbox1;
+        private Checkbox checkbox2;
+        private Checkbox checkbox3;
+        private int value;
+    }
+
+    Component featureGrid() {
+
+        var layout = new VerticalLayout();
+
+
+
+
+        Checkbox cb1_0p = new Checkbox();
+        Checkbox cb1_1p = new Checkbox();
+        Checkbox cb1_2p = new Checkbox();
+
+        Checkbox cb2_0p = new Checkbox();
+        Checkbox cb2_1p = new Checkbox();
+        Checkbox cb2_2p = new Checkbox();
+
+        Checkbox cb3_0p = new Checkbox();
+        Checkbox cb3_1p = new Checkbox();
+        Checkbox cb3_2p = new Checkbox();
+
+        this.items = Arrays.asList(
+                new GridRow(StaticTexts.P1_LABEL, StaticTexts.P1_0P, StaticTexts.P1_1P, StaticTexts.P1_2P, cb1_0p, cb1_1p, cb1_2p, 0),
+                new GridRow(StaticTexts.P2_LABEL, StaticTexts.P2_0P, StaticTexts.P2_1P, StaticTexts.P2_2P, cb2_0p, cb2_1p, cb2_2p, 0),
+                new GridRow(StaticTexts.P3_LABEL, StaticTexts.P3_0P, StaticTexts.P3_1P, StaticTexts.P3_2P, cb3_0p, cb3_1p, cb3_2p, 0)
+        );
+
+        addValueChangeCb1Listener(this.items.get(0), cb1_0p, cb1_1p, cb1_2p);
+        addValueChangeCb1Listener(this.items.get(1), cb2_0p, cb2_1p, cb2_2p);
+        addValueChangeCb1Listener(this.items.get(2), cb3_0p, cb3_1p, cb3_2p);
+
+
+        for (GridRow item : items) {
+            // Create a label with blue font color
+            Div label = new Div();
+            label.getElement().setProperty("innerHTML", item.getLabel());
+            label.getStyle().set("color", "blue");
+
+            // Create checkboxes
+            item.checkbox1.setLabel(item.getOption1());
+            item.checkbox2.setLabel(item.getOption2());
+            item.checkbox3.setLabel(item.getOption3());
+
+            // Add the label and checkboxes to a vertical layout
+            VerticalLayout group = new VerticalLayout(label, item.checkbox1, item.checkbox2, item.checkbox3);
+
+            // Add a border to the group
+            group.getStyle().set("border", "1px solid black");
+
+            // Add the group to the main layout
+            layout.add(group);
+        }
+
+        return layout;
+    }
+    private void addValueChangeCb1Listener(GridRow gr, Checkbox... _checkboxes) {
+        for (Checkbox checkbox : _checkboxes) {
+            checkbox.addValueChangeListener(event -> {
+                Checkbox sourceCheckbox = event.getSource();
+                for (Checkbox checkboxToClear : _checkboxes) {
+                    if (checkboxToClear != sourceCheckbox && event.getValue()) {
+                        checkboxToClear.clear();
+                    }
+                }
+
+                if(_checkboxes[0].getValue()) gr.value=0;
+                else if(_checkboxes[1].getValue()) gr.value=1;
+                else if(_checkboxes[2].getValue()) gr.value=2;
+                else gr.value = 0;
+                calcPoints();
+            });
+
+        }
     }
 
     Component addRefreshButton() {
