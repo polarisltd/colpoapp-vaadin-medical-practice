@@ -3,7 +3,6 @@ package com.example.application.views;
 import com.example.application.data.*;
 import com.example.application.data.enumeration.ViziteAtkartojumsEnum;
 import com.example.application.services.CrmService;
-import com.example.application.system.AppProperties;
 import com.example.application.system.ResourceBundleControl;
 import com.example.application.system.StaticTexts;
 import com.vaadin.flow.component.*;
@@ -36,9 +35,9 @@ import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.support.ResourcePropertySource;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +49,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.StreamSupport;
 
 @PermitAll
 @Route(value = "addVisit", layout = MainLayout.class)
@@ -101,11 +102,12 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Long currentVisitId = null;
 
     final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
+    final String WATCHER_PATH = "watcher.path";
     private ImageRepository imageRepository;
     private DoctorSelectorRepository doctorSelectorRepository;
-    private Environment env;
 
-    @Value("${watcherpath}")
+    Map<String,Object> appProperties;
+
     private String watcherSercvicePath;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PatientVisitView.class);
@@ -121,13 +123,11 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.sharedData = sharedData;
         this.imageRepository = imageRepository;
         this.doctorSelectorRepository = doctorSelectorRepository;
-        this.env = env;
+        this.appProperties = asProperties(env);
 
-        watcherSercvicePath = AppProperties.watcherSercvicePath;
-        if(watcherSercvicePath == null){
-            watcherSercvicePath = "c:/far/images";
-        }
 
+
+        watcherSercvicePath = this.appProperties.get(WATCHER_PATH).toString();
         watchDirectory(watcherSercvicePath);
         addClassName("patient-visit-view");
         binder.forField(izmeklejumaDatums)
@@ -183,6 +183,15 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         UI.getCurrent().addPollListener(e -> {
             refreshImagesLayout();
         });
+    }
+
+    private Map<String, Object> asProperties(Environment env) {
+        return StreamSupport.stream(
+                        ((AbstractEnvironment) env).getPropertySources().spliterator(), false)
+                .filter(ps -> ps instanceof ResourcePropertySource)
+                .map(ps -> ((ResourcePropertySource) ps).getSource())
+                .findFirst()
+                .orElse(null);
     }
 
     String getTranslation1(String key) {
