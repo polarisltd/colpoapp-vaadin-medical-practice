@@ -2,6 +2,7 @@ package com.example.application.views;
 
 import com.example.application.data.*;
 import com.example.application.data.enumeration.ViziteAtkartojumsEnum;
+import com.example.application.pdf.PdfHelloWorld;
 import com.example.application.services.CrmService;
 import com.example.application.system.ResourceBundleControl;
 import com.example.application.system.StaticTexts;
@@ -79,6 +80,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Button close = new Button("Cancel");
     Button btnPatientSelector = new Button("Pacients");
 
+    Button btnPrintPdfReport = new Button("Print PDF report");
+
     VerticalLayout imagesLayout = new VerticalLayout();
     Div pointsDiv = new Div();
 
@@ -95,7 +98,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     Long currentVisitId = null;
 
-    final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
+    public static final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
     final String WATCHER_PATH = "watcher.path";
     private ImageRepository imageRepository;
     private DoctorSelectorRepository doctorSelectorRepository;
@@ -141,9 +144,13 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 .bind(KolposkopijaIzmeklejumsEntity::getIzmeklejumaDatums, KolposkopijaIzmeklejumsEntity::setIzmeklejumaDatums);
         binder.bindInstanceFields(this);
 
+
+
         sampleImage();  // add sample to imagesLayout
 
         divFormTitle.add(getFormTitle());
+
+
 
         add(divFormTitle, izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
                 iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
@@ -427,7 +434,21 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
-        return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton());
+        btnPrintPdfReport.addClickListener(event -> {
+            PdfHelloWorld.createPdf(
+                   "1111",
+                    "2222",
+                    "3333",
+                    "4444",
+                    "5555",
+                    "6666",
+                    "7777",
+                    "8888",
+                    "9999",
+                    "101010");
+        });
+
+        return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton(),btnPrintPdfReport);
     }
 
     private void validateAndSave() {

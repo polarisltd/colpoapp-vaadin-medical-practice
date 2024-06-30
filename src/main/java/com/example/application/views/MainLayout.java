@@ -66,6 +66,7 @@ public class MainLayout extends AppLayout {
         addToDrawer(new VerticalLayout(
                 //new RouterLink("List", ListView.class),
                 new RouterLink("Dashboard", DashboardView.class),
+                new RouterLink("PdfViewer", PdfViewerView.class),
                 new RouterLink("Doctor Selector", DrSelectorView.class),
                 new RouterLink("Add Visit", PatientVisitView.class)
         ));
