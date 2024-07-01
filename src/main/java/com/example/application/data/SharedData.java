@@ -12,4 +12,5 @@ import org.springframework.context.annotation.Scope;
 public class SharedData {
     private PacientsEntity selectedPatient;
     private DakterisEntity selectedDoctor;
+    private Long selectedVisitId;
 }

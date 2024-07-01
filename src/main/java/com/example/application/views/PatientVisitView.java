@@ -1,8 +1,7 @@
 package com.example.application.views;
 
 import com.example.application.data.*;
-import com.example.application.data.enumeration.ViziteAtkartojumsEnum;
-import com.example.application.pdf.PdfHelloWorld;
+import com.example.application.pdf.PdfVisitReport;
 import com.example.application.services.CrmService;
 import com.example.application.system.ResourceBundleControl;
 import com.example.application.system.StaticTexts;
@@ -10,7 +9,6 @@ import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -65,11 +63,12 @@ import java.util.stream.StreamSupport;
 public class PatientVisitView extends FormLayout implements BeforeEnterObserver { //implements HasUrlParameter<String>
     TextField izmeklejumaNr = new TextField("Izmeklējuma Nr");
     DatePicker izmeklejumaDatums = new DatePicker("Izmeklējuma Datums");
-    ComboBox<ViziteAtkartojumsEnum> vizitesAtkartojums = new ComboBox<>("Vizites Atkartojums");
+    Checkbox vizitesAtkartojums = new Checkbox("Vizites Atkartojums");
     TextField skriningaNr = new TextField("Skrīninga Nr");
+    Checkbox kolposkopijaAdekvata  = new Checkbox("Kolposkopija adekvata?");
     TextArea anamneze = new TextArea("Anamnēze");
     TextField iepriekshVeiktaTerapija = new TextField("Iepriekš Veikta Terapija");
-    Checkbox alergijas = new Checkbox("Alergijas");
+    Checkbox alergijas = new Checkbox("Alergijas?");
     TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips");
     TextArea rezultati = new TextArea("Rezultāti");
     TextArea sledziens = new TextArea("Slēdziens");
@@ -100,22 +99,24 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     public static final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
     final String WATCHER_PATH = "watcher.path";
-    private ImageRepository imageRepository;
-    private DoctorSelectorRepository doctorSelectorRepository;
+    final private ImageRepository imageRepository;
+    final private DoctorSelectorRepository doctorSelectorRepository;
 
     Map<String,Object> appProperties;
 
-    private String watcherSercvicePath;
+    final private String watcherSercvicePath;
 
     List<GridRow> items;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PatientVisitView.class);
 
+    PdfVisitReport pdfReport;
     public PatientVisitView(CrmService service
             , SharedData sharedData,
               ImageRepository imageRepository,
               DoctorSelectorRepository doctorSelectorRepository,
-              Environment env
+              Environment env,
+              PdfVisitReport pdfReport
     ) {
 
         this.service = service;
@@ -123,7 +124,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.imageRepository = imageRepository;
         this.doctorSelectorRepository = doctorSelectorRepository;
         this.appProperties = asProperties(env);
-
+        this.pdfReport = pdfReport;
 
 
         watcherSercvicePath = this.appProperties.get(WATCHER_PATH).toString();
@@ -154,6 +155,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         add(divFormTitle, izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
                 iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
+                kolposkopijaAdekvata,
                 featureGrid(),
                 pointsDiv,
                 rezultati, sledziens, nakosaKolposkopijasKontrole,
@@ -169,18 +171,14 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.addCloseListener(e -> closeEditor());
         UI.getCurrent().setPollInterval(30000); // Polling interval is set in milliseconds
 
-        UI.getCurrent().addPollListener(e -> {
-            refreshImagesLayout();
-        });
+        UI.getCurrent().addPollListener(e -> refreshImagesLayout());
     }
 
 
     void calcPoints(){
         pointsDiv.removeAll();
         AtomicInteger count = new AtomicInteger(0);
-        this.items.forEach(item -> {
-            count.addAndGet(item.value);
-        });
+        this.items.forEach(item -> count.addAndGet(item.value));
         pointsDiv.add(new Div(new Div("Points: %s".formatted(count.get()))));
     }
     private Map<String, Object> asProperties(Environment env) {
@@ -211,6 +209,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         private Checkbox checkbox2;
         private Checkbox checkbox3;
         private int value;
+        private String id;
     }
 
     Component featureGrid() {
@@ -233,14 +232,14 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         Checkbox cb3_2p = new Checkbox();
 
         this.items = Arrays.asList(
-                new GridRow(StaticTexts.P1_LABEL, StaticTexts.P1_0P, StaticTexts.P1_1P, StaticTexts.P1_2P, cb1_0p, cb1_1p, cb1_2p, 0),
-                new GridRow(StaticTexts.P2_LABEL, StaticTexts.P2_0P, StaticTexts.P2_1P, StaticTexts.P2_2P, cb2_0p, cb2_1p, cb2_2p, 0),
-                new GridRow(StaticTexts.P3_LABEL, StaticTexts.P3_0P, StaticTexts.P3_1P, StaticTexts.P3_2P, cb3_0p, cb3_1p, cb3_2p, 0)
+                new GridRow(StaticTexts.P1_LABEL, StaticTexts.P1_0P, StaticTexts.P1_1P, StaticTexts.P1_2P, cb1_0p, cb1_1p, cb1_2p, 0, "P1"),
+                new GridRow(StaticTexts.P2_LABEL, StaticTexts.P2_0P, StaticTexts.P2_1P, StaticTexts.P2_2P, cb2_0p, cb2_1p, cb2_2p, 0, "P2"),
+                new GridRow(StaticTexts.P3_LABEL, StaticTexts.P3_0P, StaticTexts.P3_1P, StaticTexts.P3_2P, cb3_0p, cb3_1p, cb3_2p, 0, "P3")
         );
 
-        addValueChangeCb1Listener(this.items.get(0), cb1_0p, cb1_1p, cb1_2p);
-        addValueChangeCb1Listener(this.items.get(1), cb2_0p, cb2_1p, cb2_2p);
-        addValueChangeCb1Listener(this.items.get(2), cb3_0p, cb3_1p, cb3_2p);
+        addValueChangeCb1Listener(this.items.get(0),cb1_0p, cb1_1p, cb1_2p);
+        addValueChangeCb1Listener(this.items.get(1),cb2_0p, cb2_1p, cb2_2p);
+        addValueChangeCb1Listener(this.items.get(2),cb3_0p, cb3_1p, cb3_2p);
 
 
         for (GridRow item : items) {
@@ -292,9 +291,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         Button refreshButton = new Button("Refresh Images (F8)");
         refreshButton.addClickShortcut(Key.F8);
 
-        refreshButton.addClickListener(e -> {
-            refreshImagesLayout();
-        });
+        refreshButton.addClickListener(e -> refreshImagesLayout());
         return refreshButton;
     }
 
@@ -324,18 +321,16 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         // Fetch images from the database
         List<ImageEntity> imageEntities = imageRepository.findByVisitId((this.currentVisitId!=null)?this.currentVisitId.intValue():0);
-        imageEntities.forEach(imageEntity -> {
-            addImage(imageEntity.getImagePath());
-        });
+        imageEntities.forEach(imageEntity -> addImage(imageEntity.getImagePath()));
     }
 
     void sampleImage() {
         List.of(SAMPLE_IMAGE_PATH).forEach(imagePath -> {
             StreamResource resource = new StreamResource("image", () -> {
                 try {
-                    return new FileInputStream(new File(imagePath));
+                    return new FileInputStream(imagePath);
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    LOGGER.error("error reading image",e);
                     return null;
                 }
             });
@@ -364,9 +359,21 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     private void saveVisit(SaveEvent event) {
         var entity = event.getEntity();
+        items.forEach(item -> {
+            switch (item.id) {
+                case "P1" -> entity.setP1(item.value);
+                case "P2" -> entity.setP2(item.value);
+                case "P3" -> entity.setP3(item.value);
+                case "P4" -> entity.setP4(item.value);
+                case "P5" -> entity.setP5(item.value);
+            }
+            LOGGER.info("Item: %s value: %s".formatted(item.label, item.value));
+        });
+
         try {
             saveVisit(entity);
             Notification.show("Visit saved", 3000, Notification.Position.MIDDLE);
+            sharedData.setSelectedVisitId(entity.getId());
             //closeEditor();
         }catch (Exception e) {
             Notification.show("error: %s".formatted(e.getMessage()), 3000, Notification.Position.MIDDLE);
@@ -434,19 +441,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
-        btnPrintPdfReport.addClickListener(event -> {
-            PdfHelloWorld.createPdf(
-                   "1111",
-                    "2222",
-                    "3333",
-                    "4444",
-                    "5555",
-                    "6666",
-                    "7777",
-                    "8888",
-                    "9999",
-                    "101010");
-        });
+        btnPrintPdfReport.addClickListener(event -> this.pdfReport.generate(pdfReport.PDF_FILE_NAME));
 
         return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton(),btnPrintPdfReport);
     }
