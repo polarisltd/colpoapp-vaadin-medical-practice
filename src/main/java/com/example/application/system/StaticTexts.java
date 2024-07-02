@@ -23,7 +23,7 @@ public class StaticTexts {
     public final static String P3_2P="2p. Rupja punktuācija vai mozaīka. Plaši izvietoti AV ar neregulāru zarojumu";
 
     public final static String P4_LABEL="Lugola prove";
-        public final static String P4_0P="2p. Pozitīva lugola prove (LP) - mahagonija krāsa";
+    public final static String P4_0P="2p. Pozitīva lugola prove (LP) - mahagonija krāsa";
     public final static String P4_1P="1p. Daļēji pozitīva Lugola proveraibs izskats";
     public final static String P4_2P="2p. Negatīva lugola prove (LN) - dzeltena krāsa";
 
@@ -31,6 +31,11 @@ public class StaticTexts {
     public final static String  P5_0P="0p. <5mm";
     public final static String  P5_1P="1p. 5-15mm. vai aizņem 2 kvadrantus";
     public final static String  P5_2P="2p. >15mm vai aizņem 3-4 kvadrantus, neskaidra izplatība endocervikāla";
+
+    public final static String P_TOTAL_POINTS_LABEL="Kopējais punktu skaits";
+    public final static String P_TOTAL_POINTS_0_4="0-4: Norma vai zema riska izmaiņas CIN.1";
+    public final static String P_TOTAL_POINTS_5_6="5-6: Augsta riska izmaiņas CIN.2+";
+    public final static String P_TOTAL_POINTS_7_10="7-10: Augsta riska izmaiņas CIN.2+. Nevar izslēgt invazīvu procesu";
 
 
     public final static String M_LABEL="Manipulācijas vizītes laikā";

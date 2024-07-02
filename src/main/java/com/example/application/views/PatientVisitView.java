@@ -153,15 +153,17 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
 
 
-        add(divFormTitle, izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
+        add(divFormTitle,
+                createButtonsLayout(),
+                izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
                 iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
                 kolposkopijaAdekvata,
                 featureGrid(),
                 pointsDiv,
                 rezultati, sledziens, nakosaKolposkopijasKontrole,
                 imagesLayout,
-                addRefreshButton(),
-                createButtonsLayout());
+                addRefreshButton()
+                );
         KolposkopijaIzmeklejumsEntity visit = new KolposkopijaIzmeklejumsEntity();
         LocalDate currentDate = LocalDate.now();
         Instant currentInstant = currentDate.atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -231,10 +233,20 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         Checkbox cb3_1p = new Checkbox();
         Checkbox cb3_2p = new Checkbox();
 
+        Checkbox cb4_0p = new Checkbox();
+        Checkbox cb4_1p = new Checkbox();
+        Checkbox cb4_2p = new Checkbox();
+
+        Checkbox cb5_0p = new Checkbox();
+        Checkbox cb5_1p = new Checkbox();
+        Checkbox cb5_2p = new Checkbox();
+
         this.items = Arrays.asList(
                 new GridRow(StaticTexts.P1_LABEL, StaticTexts.P1_0P, StaticTexts.P1_1P, StaticTexts.P1_2P, cb1_0p, cb1_1p, cb1_2p, 0, "P1"),
                 new GridRow(StaticTexts.P2_LABEL, StaticTexts.P2_0P, StaticTexts.P2_1P, StaticTexts.P2_2P, cb2_0p, cb2_1p, cb2_2p, 0, "P2"),
-                new GridRow(StaticTexts.P3_LABEL, StaticTexts.P3_0P, StaticTexts.P3_1P, StaticTexts.P3_2P, cb3_0p, cb3_1p, cb3_2p, 0, "P3")
+                new GridRow(StaticTexts.P3_LABEL, StaticTexts.P3_0P, StaticTexts.P3_1P, StaticTexts.P3_2P, cb3_0p, cb3_1p, cb3_2p, 0, "P3"),
+                new GridRow(StaticTexts.P4_LABEL, StaticTexts.P4_0P, StaticTexts.P4_1P, StaticTexts.P4_2P, cb4_0p, cb4_1p, cb4_2p, 0, "P4"),
+                new GridRow(StaticTexts.P5_LABEL, StaticTexts.P5_0P, StaticTexts.P5_1P, StaticTexts.P5_2P, cb5_0p, cb5_1p, cb5_2p, 0, "P5")
         );
 
         addValueChangeCb1Listener(this.items.get(0),cb1_0p, cb1_1p, cb1_2p);
@@ -305,6 +317,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             });
             PatientSelectorView patientSelectionView = new PatientSelectorView(sharedData, service);
             patientSelectionView.setDialog(dialog);
+            dialog.setSizeFull();
             dialog.add(patientSelectionView);
             dialog.open();
         });
@@ -441,7 +454,17 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
-        btnPrintPdfReport.addClickListener(event -> this.pdfReport.generate(pdfReport.PDF_FILE_NAME));
+        btnPrintPdfReport.addClickListener(event -> {
+                this.pdfReport.generate(pdfReport.PDF_FILE_NAME);
+                // viewer
+
+            Dialog dialog = new Dialog();
+            PdfViewerView pdfViewerView = new PdfViewerView();
+            Button closeButton = new Button("Close", event_ -> dialog.close());
+            dialog.add(closeButton, pdfViewerView);
+            dialog.setSizeFull();
+            dialog.open();
+    });
 
         return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton(),btnPrintPdfReport);
     }

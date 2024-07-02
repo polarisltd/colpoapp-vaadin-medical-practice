@@ -1,8 +1,6 @@
 package com.example.application.pdf;
 
-import com.example.application.data.KolposkopijaIzmeklejumsEntity;
-import com.example.application.data.KolposkopijaIzmeklejumsRepository;
-import com.example.application.data.SharedData;
+import com.example.application.data.*;
 import com.example.application.system.StaticTexts;
 import com.example.application.views.PatientVisitView;
 import com.itextpdf.text.*;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 
 @Component
 public class PdfVisitReport
@@ -24,13 +23,15 @@ public class PdfVisitReport
 
     SharedData sharedData;
     KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository;
+    ImageRepository imageRepository;
     final public String PDF_FILE_NAME = "HelloWorld.pdf";
     public PdfVisitReport(
             SharedData sharedData,
-            KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository) {
+            KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository,
+            ImageRepository imageRepository) {
                 this.sharedData = sharedData;
                 this.kolposkopijaIzmeklejumsRepository = kolposkopijaIzmeklejumsRepository;
-
+                this.imageRepository = imageRepository;
     }
 
     public void generate(String filename){
@@ -41,39 +42,51 @@ public class PdfVisitReport
         KolposkopijaIzmeklejumsEntity entity =
                 kolposkopijaIzmeklejumsRepository.findById(sharedData.getSelectedVisitId()).orElse(null);
 
-        Document document = new Document();
+        //Document document = new Document();
+        // Create a new document with no margins
+        Document document = new Document(PageSize.A4, 0, 0, 0, 0);
+
+// Rest of your code...
         try {
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename));
             document.open();
 
 
-            PdfPTable table01 = new PdfPTable(2);
-            table01.setWidths(new float[]{0.25f, 0.75f});
+            PdfPTable table01 = new PdfPTable(3);
+            table01.setWidthPercentage(90f);
+            table01.setWidths(new float[]{0.25f, 0.25f, 0.5f});
             table01.getDefaultCell().setBorder(Rectangle.NO_BORDER);
             table01.addCell(
-                    getTextCell("KOLPOSKOPIJA "+ (entity.getVizitesAtkartojums()?"Atkārtota":"Pirmreizēja"), Element.ALIGN_LEFT,Rectangle.NO_BORDER));
+                    getTextCell("KOLPOSKOPIJA", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
+            table01.addCell(
+                    getTextCell((entity.getVizitesAtkartojums()?"Atkārtota":"Pirmreizēja"), Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             table01.addCell(
                     getTextCell("DATUMS "+ entity.getIzmeklejumaDatums().toString(), Element.ALIGN_RIGHT,Rectangle.NO_BORDER)
             );
+
             table01.addCell(
                     getTextCell("VARDS UZVĀRDS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER)
             );
             table01.addCell(
                     getTextCell(entity.getPacients().getVardsUzvardsPacients(), Element.ALIGN_LEFT,Rectangle.NO_BORDER)
             );
+            table01.addCell(getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             table01.addCell(
                     getTextCell("ALERĢIJAS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER)
             );
             table01.addCell(
                     getTextCell((entity.getAlergijas()?"IR":"NAV"), Element.ALIGN_LEFT,Rectangle.NO_BORDER)
             );
+            table01.addCell(getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             table01.setSpacingAfter(50f);
 
 
             document.add(table01);
 
             PdfPTable table02 = new PdfPTable(2);
+            table02.setWidthPercentage(90f);
             table02.setWidths(new float[]{0.25f, 0.75f});
+            table02.setSpacingAfter(10f);
             var thisCell = table02.addCell(
                     getTextCell("KOLPOSKOPIJA "+getTwoOptions(entity.getKolposkopijaAdekvata(), "Adekvāta", "neadekvāta"), Element.ALIGN_LEFT,Rectangle.BOX));
             thisCell.setColspan(2);
@@ -87,13 +100,13 @@ public class PdfVisitReport
             );
             thisCell.setColspan(2);
             table02.addCell(
-                    getTextCell("Pazīme ", Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell("Pazīme ")
             );
             table02.addCell(
-                    getTextCell("Punkti ", Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell("Punkti ")
             );
             table02.addCell(
-                    getTextCell(StaticTexts.P1_LABEL, Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell(StaticTexts.P1_LABEL)
             );
             table02.addCell(
                     getTextCell(
@@ -102,11 +115,11 @@ public class PdfVisitReport
                                         case 0 -> StaticTexts.P1_0P;
                                         case 1 -> StaticTexts.P1_1P;
                                         default -> StaticTexts.P1_2P;
-                                    }, Element.ALIGN_LEFT,Rectangle.BOX)
+                                    })
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P2_LABEL, Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell(StaticTexts.P2_LABEL)
             );
             table02.addCell(
                     getTextCell(
@@ -115,11 +128,11 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P2_0P;
                                 case 1 -> StaticTexts.P2_1P;
                                 default -> StaticTexts.P2_2P;
-                            }, Element.ALIGN_LEFT,Rectangle.BOX)
+                            })
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P3_LABEL, Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell(StaticTexts.P3_LABEL)
             );
             table02.addCell(
                     getTextCell(
@@ -128,11 +141,11 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P3_0P;
                                 case 1 -> StaticTexts.P3_1P;
                                 default -> StaticTexts.P3_2P;
-                            }, Element.ALIGN_LEFT,Rectangle.BOX)
+                            })
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P4_LABEL, Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell(StaticTexts.P4_LABEL)
             );
             table02.addCell(
                     getTextCell(
@@ -141,11 +154,11 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P4_0P;
                                 case 1 -> StaticTexts.P4_1P;
                                 default -> StaticTexts.P4_2P;
-                            }, Element.ALIGN_LEFT,Rectangle.BOX)
+                            })
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P5_LABEL, Element.ALIGN_LEFT,Rectangle.BOX)
+                    getTextCell(StaticTexts.P5_LABEL)
             );
             table02.addCell(
                     getTextCell(
@@ -154,29 +167,112 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P5_0P;
                                 case 1 -> StaticTexts.P5_1P;
                                 default -> StaticTexts.P5_2P;
-                            }, Element.ALIGN_LEFT,Rectangle.BOX)
+                            })
+            );
+            int totalPoints =
+                    entity.getP1()
+                            +entity.getP2()
+                            +entity.getP3()
+                            +entity.getP4()
+                            +entity.getP5();
+            {
+                var c = getTextCell(String.format("%s (%s)", StaticTexts.P_TOTAL_POINTS_LABEL, totalPoints), Element.ALIGN_LEFT, Rectangle.BOX);
+                c.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                table02.addCell(c);
+            }
+            {
+                var c = getTextCell(
+                        (switch (totalPoints) {
+                            case 0, 1, 2, 3, 4 -> StaticTexts.P_TOTAL_POINTS_0_4;
+                            case 5, 6 -> StaticTexts.P_TOTAL_POINTS_5_6;
+                            case 7, 8, 9, 10 -> StaticTexts.P_TOTAL_POINTS_7_10;
+                            default -> "n/a";
+                        }), Element.ALIGN_LEFT, Rectangle.BOX);
+                c.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                table02.addCell(c);
+            }
+            document.add(table02);
+
+
+            PdfPTable table03 = new PdfPTable(2);
+            table03.setWidthPercentage(90f);
+            table03.setWidths(new float[]{0.25f, 0.75f});
+            table03.setSpacingAfter(10f);
+
+            {
+                PdfPCell cell = new PdfPCell(getTextCell(StaticTexts.M_LABEL));
+                cell.setRowspan(2);
+                table03.addCell(cell);
+            }
+            {
+                PdfPCell cell = new PdfPCell(getTextCell(
+                        StaticTexts.M1+" "+(entity.getM1() == null ? "n/a"
+                            : entity.getM1() ? "Jā"
+                            : "Nē"
+                )));
+                table03.addCell(cell);
+            }
+            {
+                PdfPCell cell = new PdfPCell(getTextCell(
+                        StaticTexts.M2+" "+(entity.getM2() == null ? "n/a"
+                            : entity.getM2() ? "Jā"
+                            : "Nē"
+                )));
+                table03.addCell(cell);
+            }
+
+//            List listOfM = new List(List.UNORDERED);
+//
+//            listOfM.add(new ListItem(
+//                    getTextPhrase(StaticTexts.M1+" "+(entity.getM1() == null ? "n/a"
+//                            : entity.getM1() ? "Jā"
+//                            : "Nē"),16)
+//            ));
+//            listOfM.add(new ListItem(
+//                    getTextPhrase(StaticTexts.M2+" "+(entity.getM2() == null ? "n/a"
+//                            : entity.getM1() ? "Jā"
+//                            : "Nē"),16)
+//            ));
+//            {
+//                PdfPCell c = new PdfPCell();
+//                cell.addElement(listOfM);
+//                table03.addCell(c);
+//            }
+
+
+            table03.addCell(
+                    getTextCell("Iepriekšēja terapija")
+            );
+            table03.addCell(
+                    getTextCell(entity.getIepriekshVeiktaTerapija())
+            );
+            table03.addCell(
+                    getTextCell("Anamnēze")
+            );
+            table03.addCell(
+                    getTextCell(entity.getAnamneze())
             );
 
-            
-            document.add(table02);
-            
+            table03.addCell(
+                    getTextCell("Rezultāti")
+            );
+            table03.addCell(
+                    getTextCell(entity.getRezultati())
+            );
+            table03.addCell(
+                    getTextCell("Slēdziens")
+            );
+            table03.addCell(
+                    getTextCell(entity.getSledziens())
+            );
 
-            document.add(getTextPhrase(StaticTexts.M_LABEL,16));
-            
-            List listOfM = new List(List.UNORDERED);
-          
-            listOfM.add(new ListItem(
-                    getTextPhrase(StaticTexts.M1+" "+(entity.getM1() == null ? "n/a"
-                            : entity.getM1() ? "Jā"
-                            : "Nē"),16)
-            ));
-            listOfM.add(new ListItem(
-                    getTextPhrase(StaticTexts.M2+" "+(entity.getM2() == null ? "n/a"
-                            : entity.getM1() ? "Jā"
-                            : "Nē"),16)
-            ));
+            document.add(table03);
 
-            document.add(listOfM);
+            PdfPTable table04 = new PdfPTable(2);
+            table04.setWidthPercentage(90f);
+            table03.setSpacingAfter(10f);
+            visitImages(entity, table04);
+            document.add(table04);
 
             document.close();
             writer.close();
@@ -191,8 +287,8 @@ public class PdfVisitReport
     }
     public static PdfPCell getTextCell(String text, int alignment,int border) {
         FontSelector fs = new FontSelector();
-        Font font = FontFactory.getFont(FontFactory.HELVETICA, 11);
-        font.setColor(BaseColor.GRAY);
+        Font font = FontFactory.getFont(FontFactory.HELVETICA, 10);
+        font.setColor(BaseColor.BLACK);
         fs.addFont(font);
         Phrase phrase = fs.process(text);
         PdfPCell cell = new PdfPCell (phrase);
@@ -202,101 +298,15 @@ public class PdfVisitReport
         return cell;
     }
 
+    public static PdfPCell getTextCell(String text) {
+        return getTextCell(text, Element.ALIGN_LEFT, Rectangle.BOX);
+    }
+
     static Phrase getTextPhrase(String text, float size) {
         FontSelector fs = new FontSelector();
         Font font = FontFactory.getFont(FontFactory.HELVETICA, size);
         fs.addFont(font);
         return fs.process(text);
-    }
-
-    /*
-void doit() {
-            PdfPTable irdTable = new PdfPTable(2);
-
-            irdTable.addCell(getIRDCell("Invoice No"));
-            //System.out.println("Enter Invoice No : ");
-            //=sc.nextLine();
-            irdTable.addCell(getIRDCell("Invoice Date"));
-            //System.out.println("Enter Invoice Date : ");
-            //=sc.nextLine();
-            irdTable.addCell(getIRDCell(invoiveno)); // pass invoice number
-            irdTable.addCell(getIRDCell(invoivedate)); // pass invoice date
-
-            PdfPTable irhTable = new PdfPTable(3);
-            irhTable.setWidthPercentage(100);
-
-            irhTable.addCell(getIRHCell("", PdfPCell.ALIGN_RIGHT));
-            irhTable.addCell(getIRHCell("", PdfPCell.ALIGN_RIGHT));
-            irhTable.addCell(getIRHCell("", PdfPCell.ALIGN_CENTER));
-            irhTable.addCell(getIRHCell("", PdfPCell.ALIGN_RIGHT));
-            irhTable.addCell(getIRHCell("", PdfPCell.ALIGN_RIGHT));
-            PdfPCell invoiceTable = new PdfPCell (irdTable);
-            invoiceTable.setBorder(0);
-            irhTable.addCell(invoiceTable);
-
-            FontSelector fs = new FontSelector();
-            Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 13, Font.BOLD);
-            fs.addFont(font);
-            Phrase bill = fs.process("Bill To"); // customer information
-            //System.out.println("Enter Customer Name : ");
-            //=sc.nextLine();
-            Paragraph name = new Paragraph(name2);
-            name.setIndentationLeft(20);
-            //System.out.println("Enter Customer Mobile : ");
-            //=sc.nextLine();
-            Paragraph contact = new Paragraph(mob);
-            contact.setIndentationLeft(20);
-            //System.out.println("Enter Customer Address : ");
-
-            Paragraph address = new Paragraph(add);
-            address.setIndentationLeft(20);
-            int n;
-            //System.out.println("Enter No. of Quantities : ");
-            //n=Integer.parseInt(sc.nextLine());
-
-
-
-
-            PdfPTable validity = new PdfPTable(1);
-            validity.setWidthPercentage(100);
-            validity.addCell(getValidityCell(" "));
-            validity.addCell(getValidityCell("Warranty"));
-            validity.addCell(getValidityCell(" * Products purchased comes with 1 year national warranty \n   (if applicable)"));
-            validity.addCell(getValidityCell(" * Warranty should be claimed only from the respective manufactures"));
-            PdfPCell summaryL = new PdfPCell (validity);
-            summaryL.setColspan (3);
-            summaryL.setPadding (1.0f);
-
-
-            PdfPTable accounts = new PdfPTable(2);
-            accounts.setWidthPercentage(100);
-            accounts.addCell(getAccountsCell("Subtotal"));
-            accounts.addCell(getAccountsCellR("12620.00"));
-            accounts.addCell(getAccountsCell("Discount (10%)"));
-            accounts.addCell(getAccountsCellR("1262.00"));
-            accounts.addCell(getAccountsCell("Tax(2.5%)"));
-            accounts.addCell(getAccountsCellR("315.55"));
-            accounts.addCell(getAccountsCell("Total"));
-            accounts.addCell(getAccountsCellR("11673.55"));
-            PdfPCell summaryR = new PdfPCell (accounts);
-            summaryR.setColspan (3);
-
-
-            PdfPTable describer = new PdfPTable(1);
-            describer.setWidthPercentage(100);
-            describer.addCell(getdescCell(" "));
-            describer.addCell(getdescCell("Goods once sold will not be taken back or exchanged || Subject to product justification || Product damage no one responsible || "
-                    + " Service only at concarned authorized service centers"));
-
-
-    }
-*/
-
-    
-
-
-    public static void setHeader() {
-
     }
 
     public static PdfPCell getIRHCell(String text, int alignment) {
@@ -350,28 +360,7 @@ void doit() {
         return cell;
     }
 
-//    public static PdfPCell getValidityCell(String text) {
-//        FontSelector fs = new FontSelector();
-//        Font font = FontFactory.getFont(FontFactory.HELVETICA, 10);
-//        font.setColor(BaseColor.GRAY);
-//        fs.addFont(font);
-//        Phrase phrase = fs.process(text);
-//        PdfPCell cell = new PdfPCell (phrase);
-//        cell.setBorder(0);
-//        return cell;
-//    }
 
-//    public static PdfPCell getAccountsCell(String text) {
-//        FontSelector fs = new FontSelector();
-//        Font font = FontFactory.getFont(FontFactory.HELVETICA, 10);
-//        fs.addFont(font);
-//        Phrase phrase = fs.process(text);
-//        PdfPCell cell = new PdfPCell (phrase);
-//        cell.setBorderWidthRight(0);
-//        cell.setBorderWidthTop(0);
-//        cell.setPadding (5.0f);
-//        return cell;
-//    }
     public static PdfPCell getAccountsCellR(String text) {
         FontSelector fs = new FontSelector();
         Font font = FontFactory.getFont(FontFactory.HELVETICA, 10);
@@ -407,37 +396,24 @@ void doit() {
     }
 
 
-//    static Element getBillTable(PdfPCell summaryL,PdfPCell summaryR) {
-//        PdfPTable billTable = new PdfPTable(3);
-//        billTable.setWidthPercentage(100);
-//        billTable.addCell(getBillHeaderCell("Description"));
-//        billTable.addCell(getBillHeaderCell("Quantity"));
-//        billTable.addCell(getBillHeaderCell("Amount"));
-//        billTable.addCell(getBillRowCell("Samsung Galaxy J7"));
-//        billTable.addCell(getBillRowCell("1"));
-//        billTable.addCell(getBillRowCell("12620.00"));
-//        billTable.addCell(getBillRowCell("Samsung Galaxy J7"));
-//        billTable.addCell(getBillRowCell("1"));
-//        billTable.addCell(getBillRowCell("12620.00"));
-//        billTable.addCell(getBillRowCell("Samsung Galaxy J7"));
-//        billTable.addCell(getBillRowCell("1"));
-//        billTable.addCell(getBillRowCell("12620.00"));
-//        billTable.addCell(summaryL);
-//        billTable.addCell(summaryR);
-//        return billTable;
-//    }
 
-    static Element image() {
-        try {
-            Image image1 = Image.getInstance(PatientVisitView.SAMPLE_IMAGE_PATH);
-            image1.setAlignment(Element.ALIGN_CENTER);
-            image1.scaleAbsolute(450, 250);
-            return image1;
-        }catch (Exception e) {
-            LOGGER.error("Error while loading image", e);
-            return null;
+
+    void visitImages(KolposkopijaIzmeklejumsEntity visitEntity, PdfPTable imageTable) { // PatientVisitView.SAMPLE_IMAGE_PATH
+
+        this.imageRepository.findByVisitId(visitEntity.getId().intValue()).forEach(image -> {
+                try {
+                    LOGGER.info("Adding image to PDF: " + image.getImagePath());
+                    Image image1 = Image.getInstance(image.getImagePath());
+                    image1.setAlignment(Element.ALIGN_CENTER);
+                    image1.scaleAbsoluteWidth(400);
+                    imageTable.addCell(image1);
+                } catch (Exception e) {
+                    LOGGER.error("Error while loading image", e);
+                }
+            });
+
         }
     }
 
-}
+
 

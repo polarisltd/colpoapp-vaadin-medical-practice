@@ -52,7 +52,6 @@ public class PatientSelectorView extends VerticalLayout {
         grid.setSizeFull();
         grid.setItems(service.findAllPatients(null));
         grid.setAllRowsVisible(true);
-        //grid.setSizeUndefined();
         grid.setWidth("60%");
         grid.setColumns("vardsUzvardsPacients", "personasKods");
         btnSelectPatient.addClickListener(e -> {
