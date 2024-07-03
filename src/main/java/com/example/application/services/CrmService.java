@@ -64,6 +64,13 @@ public class CrmService {
         }
         contactRepository.save(contact);
     }
+    public void savePatient(PacientsEntity patient) {
+        if (patient == null) {
+            System.err.println("Contact is null. Are you sure you have connected your form to the application?");
+            return;
+        }
+        patientsRepository.save(patient);
+    }
     public KolposkopijaIzmeklejumsEntity saveVisit(KolposkopijaIzmeklejumsEntity entity) {
         if (entity == null) {
             System.err.println("Visit data is null. Are you sure you have connected your form to the application?");

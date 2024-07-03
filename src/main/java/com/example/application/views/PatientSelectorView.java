@@ -26,21 +26,29 @@ import java.util.Optional;
 @PermitAll
 @Route(value = "patient/selector", layout = MainLayout.class)
 @PageTitle("Select Patient | Colposcope app")
-public class PatientSelectorView extends VerticalLayout {
+public class PatientSelectorView extends HorizontalLayout implements PatientFormView.PatientFormListener{
 
     Grid<PacientsEntity> grid = new Grid<>(PacientsEntity.class);
     TextField filterText = new TextField();
-    private final Button btnSelectPatient = new Button("Select Patient");
     private final Button btnClose = new Button("Close");
-    private final Button btnAdd = new Button("Add Patient");
+    //private final Button btnAdd = new Button("Add Patient");
     final private CrmService service;
     final private SharedData sharedData;
     private Dialog dialog = null;
+
+    PatientFormView patientFormView;
     public PatientSelectorView(SharedData sharedData, CrmService service) {
         this.service = service;
         this.sharedData = sharedData;
         configureGrid();
-        add(getToolbar(), grid, btnClose);
+        configureForm();
+
+        VerticalLayout gridPart = new VerticalLayout();
+        gridPart.add(getToolbar(), grid);
+
+        add(gridPart, patientFormView, btnClose);
+
+        patientFormView.setPatientFormListener(this);
     }
 
     public void setDialog(Dialog dialog) {
@@ -54,10 +62,10 @@ public class PatientSelectorView extends VerticalLayout {
         grid.setAllRowsVisible(true);
         grid.setWidth("60%");
         grid.setColumns("vardsUzvardsPacients", "personasKods");
-        btnSelectPatient.addClickListener(e -> {
-            selectPatient();
+        grid.asSingleSelect().addValueChangeListener(event -> {
+            PacientsEntity selectedPatient = event.getValue();
+            patientFormView.updateFormFields(selectedPatient);
         });
-
         btnClose.addClickListener(e -> Optional.ofNullable(dialog).ifPresent(Dialog::close));
 
         grid.addItemDoubleClickListener(e -> {
@@ -75,6 +83,10 @@ public class PatientSelectorView extends VerticalLayout {
         }).setHeader("Action");
     }
 
+    void configureForm() {
+        patientFormView = new PatientFormView(sharedData, service);
+        patientFormView.setWidth("25em");
+    }
     void selectPatient(){
         var selected = grid.asSingleSelect().getValue();
         if(selected == null) {
@@ -85,26 +97,23 @@ public class PatientSelectorView extends VerticalLayout {
         }
     }
 
-    public void navigateToVisitEntryForm(Long drId, Long patientId) {
-        Map<String, String> params = new HashMap<>();
-        params.put(DOCTOR_ID_ROUTE_PARAM, drId.toString());
-        params.put(PATIENT_ID_ROUTE_PARAM, patientId.toString());
-        UI.getCurrent().navigate(PatientVisitView.class, new RouteParameters(params));
-    }
     private Component getToolbar() {
         filterText.setPlaceholder("Filter by name...");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
-        filterText.addValueChangeListener(e -> updateList());
-        var toolbar =  new HorizontalLayout(filterText, btnAdd, btnSelectPatient);
+        filterText.addValueChangeListener(e -> refreshGrid());
+        var toolbar =  new HorizontalLayout(filterText);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
-    private void updateList() {
+    private void refreshGrid() {
         grid.setItems(service.findAllPatients(filterText.getValue()));
     }
 
 
-
+    @Override
+    public void onPatientFormSaved() {
+        refreshGrid();
+    }
 }
