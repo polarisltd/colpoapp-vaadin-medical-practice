@@ -45,10 +45,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.*;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +59,7 @@ import java.util.stream.StreamSupport;
 @Route(value = "addVisit", layout = MainLayout.class)
 @PageTitle("Visit | Colposcope app")
 public class PatientVisitView extends FormLayout implements BeforeEnterObserver { //implements HasUrlParameter<String>
+    public static final String SAMPLE_IMAGE = "colposcopy-logo.jpg";
     TextField izmeklejumaNr = new TextField("Izmeklējuma Nr");
     DatePicker izmeklejumaDatums = new DatePicker("Izmeklējuma Datums");
     Checkbox vizitesAtkartojums = new Checkbox("Vizites Atkartojums");
@@ -97,8 +96,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     Long currentVisitId = null;
 
-    public static final String SAMPLE_IMAGE_PATH = "C:/far/images/colposcopy-logo.jpg";
-    final String WATCHER_PATH = "watcher.path";
+     final String WATCHER_PATH = "watcher.path";
+    final String PDF_REPORTS_PATH = "pdf.reports.path";
     final private ImageRepository imageRepository;
     final private DoctorSelectorRepository doctorSelectorRepository;
 
@@ -338,12 +337,16 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     }
 
     void sampleImage() {
-        List.of(SAMPLE_IMAGE_PATH).forEach(imagePath -> {
+        try{
+        var watcherSercvicePath = this.appProperties.get(WATCHER_PATH).toString();
+
+        List.of(watcherSercvicePath+"/"+SAMPLE_IMAGE).forEach(imagePath -> {
+
             StreamResource resource = new StreamResource("image", () -> {
                 try {
                     return new FileInputStream(imagePath);
                 } catch (FileNotFoundException e) {
-                    LOGGER.error("error reading image",e);
+                    LOGGER.error("error reading sample image",e);
                     return null;
                 }
             });
@@ -351,6 +354,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             image.setWidth("400px");  // Set the width of the image to 400 pixels
             this.imagesLayout.add(image);
         });
+        } catch (Exception e) {
+            LOGGER.error("error reading sample image",e);
+        }
     }
 
 
@@ -455,11 +461,14 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
         btnPrintPdfReport.addClickListener(event -> {
-                this.pdfReport.generate(pdfReport.PDF_FILE_NAME);
-                // viewer
+
+            sharedData.setPdfReportFilename(getPdfReportFilename(binder.getBean()));
+
+            this.pdfReport.generate();
+            // viewer
 
             Dialog dialog = new Dialog();
-            PdfViewerView pdfViewerView = new PdfViewerView();
+            PdfViewerView pdfViewerView = new PdfViewerView(sharedData);
             Button closeButton = new Button("Close", event_ -> dialog.close());
             dialog.add(closeButton, pdfViewerView);
             dialog.setSizeFull();
@@ -467,6 +476,20 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     });
 
         return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton(),btnPrintPdfReport);
+    }
+
+
+    String getPdfReportFilename(KolposkopijaIzmeklejumsEntity entity) {
+        String filePathPrefix = this.appProperties.get(PDF_REPORTS_PATH).toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        return "%s/kolposkopija-%s_%s.pdf".formatted(
+                filePathPrefix,
+                formatter.format(ZonedDateTime.ofInstant(
+                        entity.getIzmeklejumaDatums(),
+                        ZoneId.systemDefault())),
+                entity.getPacients().getVardsUzvardsPacients().replace(" ", "-")
+        );
     }
 
     private void validateAndSave() {

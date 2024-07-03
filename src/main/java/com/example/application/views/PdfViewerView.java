@@ -13,20 +13,25 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.nio.file.Paths;
 
 @PermitAll
 @Route(value = "pdfViewer", layout = MainLayout.class)
 @PageTitle("Visit | Colposcope app")
 public class PdfViewerView extends VerticalLayout {
-    String SAMPLE_PDF_PATH = "C:/Users/polar/workspace/vaadin/flow-crm-tutorial/HelloWorld.pdf"; // replace with your file path
-    private static final Logger LOGGER = LoggerFactory.getLogger(PdfViewerView.class);
+    String SAMPLE_PDF_PATH = "C:/Users/polar/workspace/vaadin/colpoapp-vaadin/HelloWorld.pdf"; // replace with your file path
 
-    public PdfViewerView() { // <2>
+    private static final Logger LOGGER = LoggerFactory.getLogger(PdfViewerView.class);
+    SharedData sharedData;
+
+    public PdfViewerView(SharedData sharedData) { // <2>
+         this.sharedData = sharedData;
         //this.service = service;
         addClassName("dashboard-view");
         setDefaultHorizontalComponentAlignment(Alignment.CENTER); // <3>
@@ -40,9 +45,10 @@ public class PdfViewerView extends VerticalLayout {
  */
 
         PdfViewer pdfViewer = new PdfViewer();
-         StreamResource   resource = new StreamResource("visit-report.pdf", () -> {
+        var filename = getFilenameFromAbsolutePath(sharedData.getPdfReportFilename());
+         StreamResource   resource = new StreamResource(filename, () -> {
                 try {
-                    return new FileInputStream(SAMPLE_PDF_PATH);
+                    return new FileInputStream(sharedData.getPdfReportFilename());
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -53,6 +59,8 @@ public class PdfViewerView extends VerticalLayout {
     }
 
 
-
+String getFilenameFromAbsolutePath(String absolutePath){
+    return Paths.get(absolutePath).getFileName().toString();
+}
 
 }

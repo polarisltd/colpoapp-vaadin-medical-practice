@@ -1,10 +1,5 @@
 package com.example.application.pdf;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.util.Scanner;
-
-import com.example.application.views.PatientVisitView;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -13,11 +8,14 @@ import com.itextpdf.text.pdf.PdfWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
 
 public class PdfHelloWorld
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfHelloWorld.class);
-
+    private static final String SAMPLE_IMAGE_PATH = "C:/far/colpoapp-images/colposcopy-logo.jpg"; // replace with your file path
     public static void createPdf(
             String invoiveno,
             String invoivedate,
@@ -280,7 +278,7 @@ public class PdfHelloWorld
 
     static Element image() {
         try {
-            Image image1 = Image.getInstance(PatientVisitView.SAMPLE_IMAGE_PATH);
+            Image image1 = Image.getInstance(SAMPLE_IMAGE_PATH);
             image1.setAlignment(Element.ALIGN_CENTER);
             image1.scaleAbsolute(450, 250);
             return image1;

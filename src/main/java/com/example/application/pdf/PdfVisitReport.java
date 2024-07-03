@@ -34,7 +34,7 @@ public class PdfVisitReport
                 this.imageRepository = imageRepository;
     }
 
-    public void generate(String filename){
+    public void generate(){
         if (sharedData.getSelectedVisitId() == null) {
             LOGGER.error("No visit selected");
             return;
@@ -42,13 +42,11 @@ public class PdfVisitReport
         KolposkopijaIzmeklejumsEntity entity =
                 kolposkopijaIzmeklejumsRepository.findById(sharedData.getSelectedVisitId()).orElse(null);
 
-        //Document document = new Document();
-        // Create a new document with no margins
         Document document = new Document(PageSize.A4, 0, 0, 0, 0);
 
-// Rest of your code...
+
         try {
-            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename));
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(sharedData.getPdfReportFilename()));
             document.open();
 
 

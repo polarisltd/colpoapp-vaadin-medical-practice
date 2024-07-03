@@ -1,6 +1,5 @@
 package com.example.application.views;
 
-import com.example.application.data.KolposkopijaIzmeklejumsEntity;
 import com.example.application.data.PacientsEntity;
 import com.example.application.data.PatientsRepository;
 import com.example.application.data.SharedData;
@@ -14,8 +13,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotNull;
 
 public class PatientFormView extends FormLayout {
     private SharedData sharedData;
