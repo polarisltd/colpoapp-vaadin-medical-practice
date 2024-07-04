@@ -116,8 +116,9 @@ public class KolposkopijaIzmeklejumsEntity implements Serializable {
     //@NotNull
     private PacientsEntity pacients;
 
-    @OneToMany(mappedBy = "kolposkopijaIzmeklejumsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ImageEntity> images = new ArrayList<>();
-
+//    @OneToMany(mappedBy = "kolposkopijaIzmeklejumsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<ImageEntity> images = new ArrayList<>();
+@OneToMany(mappedBy = "kolposkopijaIzmeklejumsEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+private List<ImageEntity> images = new ArrayList<>();
 
     }

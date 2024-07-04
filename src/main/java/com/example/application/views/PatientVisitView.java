@@ -54,6 +54,10 @@ import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
+import static com.example.application.helpers.Helpers.asProperties;
+import static com.example.application.system.StaticTexts.PDF_PATH_PROPERTY;
+import static com.example.application.system.StaticTexts.WATCHER_PATH_PROPERTY;
+
 
 @PermitAll
 @Route(value = "addVisit", layout = MainLayout.class)
@@ -95,9 +99,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     ResourceBundle bundle;
 
     Long currentVisitId = null;
-
-     final String WATCHER_PATH = "watcher.path";
-    final String PDF_REPORTS_PATH = "pdf.reports.path";
     final private ImageRepository imageRepository;
     final private DoctorSelectorRepository doctorSelectorRepository;
 
@@ -126,7 +127,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.pdfReport = pdfReport;
 
 
-        watcherSercvicePath = this.appProperties.get(WATCHER_PATH).toString();
+        watcherSercvicePath = this.appProperties.get(WATCHER_PATH_PROPERTY).toString();
         watchDirectory(watcherSercvicePath);
         addClassName("patient-visit-view");
         binder.forField(izmeklejumaDatums)
@@ -181,14 +182,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         AtomicInteger count = new AtomicInteger(0);
         this.items.forEach(item -> count.addAndGet(item.value));
         pointsDiv.add(new Div(new Div("Points: %s".formatted(count.get()))));
-    }
-    private Map<String, Object> asProperties(Environment env) {
-        return StreamSupport.stream(
-                        ((AbstractEnvironment) env).getPropertySources().spliterator(), false)
-                .filter(ps -> ps instanceof ResourcePropertySource)
-                .map(ps -> ((ResourcePropertySource) ps).getSource())
-                .findFirst()
-                .orElse(null);
     }
 
     String getTranslation1(String key) {
@@ -338,7 +331,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     void sampleImage() {
         try{
-        var watcherSercvicePath = this.appProperties.get(WATCHER_PATH).toString();
+        var watcherSercvicePath = this.appProperties.get(WATCHER_PATH_PROPERTY).toString();
 
         List.of(watcherSercvicePath+"/"+SAMPLE_IMAGE).forEach(imagePath -> {
 
@@ -462,7 +455,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         btnPrintPdfReport.addClickListener(event -> {
 
-            sharedData.setPdfReportFilename(getPdfReportFilename(binder.getBean()));
+            String filePathPrefix = this.appProperties.get(PDF_PATH_PROPERTY).toString();
+
+            sharedData.setPdfReportFilename(getPdfReportFilename(binder.getBean(),filePathPrefix));
 
             this.pdfReport.generate();
             // viewer
@@ -479,8 +474,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     }
 
 
-    String getPdfReportFilename(KolposkopijaIzmeklejumsEntity entity) {
-        String filePathPrefix = this.appProperties.get(PDF_REPORTS_PATH).toString();
+    public static String getPdfReportFilename(KolposkopijaIzmeklejumsEntity entity, String filePathPrefix) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
         return "%s/kolposkopija-%s_%s.pdf".formatted(

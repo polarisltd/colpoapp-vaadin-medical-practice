@@ -1,19 +1,13 @@
 package com.example.application.views;
 
 import com.example.application.data.SharedData;
-import com.example.application.pdf.PdfHelloWorld;
-import com.example.application.services.CrmService;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +27,8 @@ public class PdfViewerView extends VerticalLayout {
     public PdfViewerView(SharedData sharedData) { // <2>
          this.sharedData = sharedData;
         //this.service = service;
-        addClassName("dashboard-view");
+        addClassName("pdf-preview-view");
         setDefaultHorizontalComponentAlignment(Alignment.CENTER); // <3>
-        LOGGER.info(String.format("PdfViewerView - creating pdf preview from file: %s", SAMPLE_PDF_PATH));
         H2 formTitle =
                 new H2("Kolposkopijas atskaite (pdf)");
 
@@ -46,7 +39,9 @@ public class PdfViewerView extends VerticalLayout {
 
         PdfViewer pdfViewer = new PdfViewer();
         var filename = getFilenameFromAbsolutePath(sharedData.getPdfReportFilename());
-         StreamResource   resource = new StreamResource(filename, () -> {
+        LOGGER.info(String.format("PdfViewerView - creating pdf preview from file: %s", filename));
+
+        StreamResource   resource = new StreamResource(filename, () -> {
                 try {
                     return new FileInputStream(sharedData.getPdfReportFilename());
                 } catch (FileNotFoundException e) {

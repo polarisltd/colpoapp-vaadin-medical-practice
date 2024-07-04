@@ -57,7 +57,8 @@ public class PdfVisitReport
             table01.addCell(
                     getTextCell("KOLPOSKOPIJA", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             table01.addCell(
-                    getTextCell((entity.getVizitesAtkartojums()?"Atkārtota":"Pirmreizēja"), Element.ALIGN_LEFT,Rectangle.NO_BORDER));
+                    getTextCell((entity.getVizitesAtkartojums() != null ? (entity.getVizitesAtkartojums() ? "Atkārtota" : "Pirmreizēja") : "N/A")
+                            , Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             table01.addCell(
                     getTextCell("DATUMS "+ entity.getIzmeklejumaDatums().toString(), Element.ALIGN_RIGHT,Rectangle.NO_BORDER)
             );
@@ -168,11 +169,11 @@ public class PdfVisitReport
                             })
             );
             int totalPoints =
-                    entity.getP1()
-                            +entity.getP2()
-                            +entity.getP3()
-                            +entity.getP4()
-                            +entity.getP5();
+                    ((entity.getP1() != null) ? entity.getP1() : 0)
+                            + ((entity.getP2() != null) ? entity.getP2() : 0)
+                            + ((entity.getP3() != null) ? entity.getP3() : 0)
+                            + ((entity.getP4() != null) ? entity.getP4() : 0)
+                            + ((entity.getP5() != null) ? entity.getP5() : 0);
             {
                 var c = getTextCell(String.format("%s (%s)", StaticTexts.P_TOTAL_POINTS_LABEL, totalPoints), Element.ALIGN_LEFT, Rectangle.BOX);
                 c.setBackgroundColor(BaseColor.LIGHT_GRAY);

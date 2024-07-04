@@ -1,6 +1,10 @@
 package com.example.application.system;
 
 public class StaticTexts {
+
+    public final static String WATCHER_PATH_PROPERTY="watcher.path";
+public final static String PDF_PATH_PROPERTY="pdf.path";
+    public final static String PROPERTY_WATCHER_PATH_DEFAULT="C:/Users/polar/workspace/vaadin/colpoapp-vaadin/HelloWorld.pdf";
     public final static String P1_LABEL="Robežas/ malas/ virsma";
     public final static String
             P1_0P="Kondilomatoze. Mikrokapilāras kontūras. Plakans bojājums ar neskaidrām robežām/ smalki robotām malām. Kantains, robains bojājums. Satelītu bojājumi iet pāri TZ.";

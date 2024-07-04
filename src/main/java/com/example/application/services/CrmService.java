@@ -2,6 +2,7 @@ package com.example.application.services;
 
 import com.example.application.data.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -42,6 +43,16 @@ public class CrmService {
             return patientsRepository.search(stringFilter);
         }
     }
+
+    @Transactional
+    public List<KolposkopijaIzmeklejumsEntity> findAllVisits(String stringFilter) {
+        if (stringFilter == null || stringFilter.isEmpty()) {
+            return kolposkopijaIzmeklejumsRepository.findAll();
+        } else {
+            return kolposkopijaIzmeklejumsRepository.search(stringFilter);
+        }
+    }
+
     public List<DakterisEntity> findAllDrs(String stringFilter) {
         if (stringFilter == null || stringFilter.isEmpty()) {
             return drRepository.findAll();
