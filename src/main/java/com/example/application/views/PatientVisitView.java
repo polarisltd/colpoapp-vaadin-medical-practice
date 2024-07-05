@@ -86,7 +86,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     VerticalLayout imagesLayout = new VerticalLayout();
     Div pointsDiv = new Div();
-
     Binder<KolposkopijaIzmeklejumsEntity> binder = new BeanValidationBinder<>(KolposkopijaIzmeklejumsEntity.class);
 
     CrmService service;
@@ -244,7 +243,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         addValueChangeCb1Listener(this.items.get(0),cb1_0p, cb1_1p, cb1_2p);
         addValueChangeCb1Listener(this.items.get(1),cb2_0p, cb2_1p, cb2_2p);
         addValueChangeCb1Listener(this.items.get(2),cb3_0p, cb3_1p, cb3_2p);
-
+        addValueChangeCb1Listener(this.items.get(3),cb4_0p, cb4_1p, cb4_2p);
+        addValueChangeCb1Listener(this.items.get(4),cb5_0p, cb5_1p, cb5_2p);
 
         for (GridRow item : items) {
             // Create a label with blue font color
@@ -326,7 +326,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         // Fetch images from the database
         List<ImageEntity> imageEntities = imageRepository.findByVisitId((this.currentVisitId!=null)?this.currentVisitId.intValue():0);
-        imageEntities.forEach(imageEntity -> addImage(imageEntity.getImagePath()));
+        imageEntities.forEach(imageEntity -> addImage(imageEntity));
     }
 
     void sampleImage() {
@@ -353,19 +353,26 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     }
 
 
-    void addImage(String imagePath) {
-            LOGGER.info("Loading image from path: %s".formatted(imagePath));
+    void addImage(ImageEntity entity ){//} .getImagePath()  String imagePath) {
+            LOGGER.info("Loading image from path: %s".formatted(entity.getImagePath()));
             StreamResource resource = new StreamResource("image", () -> {
                 try {
-                    return new FileInputStream(new File(imagePath));
+                    return new FileInputStream(new File(entity.getImagePath()));
                 } catch (FileNotFoundException e) {
                     LOGGER.error("error reading image",e);
                     return null;
                 }
             });
-            Image image = new Image(resource, "image from db");
+            Image image = new Image(resource, "colposcopy image");
             image.setWidth("400px");  // Set the width of the image to 400 pixels
-            this.imagesLayout.add(image);
+            Checkbox imageIncluded = new Checkbox("Iekļaut");
+            imageIncluded.setValue(entity.getImageIncluded()!=null?entity.getImageIncluded():false);
+            imageIncluded.addValueChangeListener(event -> {
+                boolean isIncluded = event.getValue();
+                entity.setImageIncluded(isIncluded);
+                imageRepository.save(entity);
+            });
+            this.imagesLayout.add(imageIncluded, image);
     }
 
 
@@ -554,9 +561,10 @@ public void beforeEnter(BeforeEnterEvent event) {
                                 if(this.currentVisitId != null) {
                                     imageRepository.save(ImageEntity.builder()
                                             .visitId(this.currentVisitId.intValue())
-                                            .imagePath(newFilePath).build()); //(, this.currentVisitId.intValue()));
+                                            .imagePath(newFilePath)
+                                            .imageIncluded(true)
+                                            .build());
                                 }else{
-
                                     LOGGER.error("Cant save image. Save Visit first");
                                 }
                                 }
@@ -574,18 +582,5 @@ public void beforeEnter(BeforeEnterEvent event) {
         }
     }
 
-    private class ImageItem {
-        @Getter
-        private byte[] image;
-        private String id;
-
-        public ImageItem(byte[] image) {
-            this.image = image;
-        }
-        public String getId() {
-            return String.valueOf(image.hashCode());
-        }
-
-    }
 
 }

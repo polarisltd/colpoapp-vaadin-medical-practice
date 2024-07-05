@@ -10,4 +10,8 @@ public interface ImageRepository extends JpaRepository<ImageEntity, Long> {
     @Query("select c from ImageEntity c " +
             "where c.visitId = :visitId")
     List<ImageEntity> findByVisitId(@Param("visitId") int visitId);
+
+    @Query("select c from ImageEntity c " +
+            "where c.visitId = :visitId and c.imageIncluded = true")
+    List<ImageEntity> findByVisitIdAndIncluded(@Param("visitId") int visitId);
 }

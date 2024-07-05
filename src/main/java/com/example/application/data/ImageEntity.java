@@ -22,6 +22,9 @@ public class ImageEntity {
     @Column(name = "image_path")
     private String imagePath;
 
+    @Column(name = "included")
+    private Boolean imageIncluded;
+
     @ManyToOne
     @JoinColumn(name="visit_id", nullable=false, updatable=false, insertable=false)
     private KolposkopijaIzmeklejumsEntity kolposkopijaIzmeklejumsEntity;

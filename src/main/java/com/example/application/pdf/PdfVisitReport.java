@@ -399,7 +399,7 @@ public class PdfVisitReport
 
     void visitImages(KolposkopijaIzmeklejumsEntity visitEntity, PdfPTable imageTable) { // PatientVisitView.SAMPLE_IMAGE_PATH
 
-        this.imageRepository.findByVisitId(visitEntity.getId().intValue()).forEach(image -> {
+        this.imageRepository.findByVisitIdAndIncluded(visitEntity.getId().intValue()).forEach(image -> {
                 try {
                     LOGGER.info("Adding image to PDF: " + image.getImagePath());
                     Image image1 = Image.getInstance(image.getImagePath());
@@ -410,6 +410,8 @@ public class PdfVisitReport
                     LOGGER.error("Error while loading image", e);
                 }
             });
+        imageTable.setSpacingAfter(10f);
+        imageTable.addCell(getTextCell(""));
 
         }
     }
