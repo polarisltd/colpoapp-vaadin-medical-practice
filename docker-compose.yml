@@ -1,0 +1,33 @@
+version: '3.1'
+
+services:
+  colpoapp:
+    image: colpoapp-vaadin-6:latest
+    ports:
+      - "8082:8080"
+    restart: always
+#    env_file:
+#      - .env
+    volumes:
+      - c:/far/colpoapp-images:/colpoapp-images
+      - c:/far/colpoapp-pdf-reports:/colpoapp-pdf-reports
+    depends_on:
+      - postgresql
+
+  postgresql:
+    image: postgres:16.2
+    # volumes:
+    #   - ~/volumes/jhipster/kolposkopija/postgresql/:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=kolposkopija
+      - POSTGRES_PASSWORD=
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - 5432:5432
+
+
