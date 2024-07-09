@@ -4,17 +4,17 @@ import com.example.application.data.*;
 import com.example.application.system.StaticTexts;
 import com.example.application.views.PatientVisitView;
 import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.FontSelector;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Component
 public class PdfVisitReport
@@ -25,6 +25,10 @@ public class PdfVisitReport
     KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository;
     ImageRepository imageRepository;
     final public String PDF_FILE_NAME = "HelloWorld.pdf";
+    final String FONT_FILE_PATH = "c:/windows/fonts/arial.ttf";
+    final String FONT_BOLD_FILE_PATH = "c:/windows/fonts/arialbd.ttf";
+    BaseFont baseFont = getBaseFont();
+    BaseFont baseBoldFont = getBoldBaseFont();
     public PdfVisitReport(
             SharedData sharedData,
             KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository,
@@ -34,6 +38,23 @@ public class PdfVisitReport
                 this.imageRepository = imageRepository;
     }
 
+    BaseFont getBaseFont() {
+        try {
+            return BaseFont.createFont(FONT_FILE_PATH, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        } catch (Exception e) {
+            LOGGER.error("Error while loading font", e);
+            return null;
+        }
+    }
+    BaseFont getBoldBaseFont() {
+        try {
+            return BaseFont.createFont(FONT_BOLD_FILE_PATH, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        } catch (Exception e) {
+            LOGGER.error("Error while loading font", e);
+            return null;
+        }
+    }
+
     public void generate(){
         if (sharedData.getSelectedVisitId() == null) {
             LOGGER.error("No visit selected");
@@ -41,6 +62,10 @@ public class PdfVisitReport
         }
         KolposkopijaIzmeklejumsEntity entity =
                 kolposkopijaIzmeklejumsRepository.findById(sharedData.getSelectedVisitId()).orElse(null);
+        if (entity == null){
+                LOGGER.error("kolposkopijaIzmeklejums is null entity id: %s".formatted(sharedData.getSelectedVisitId()));
+                return;
+        }
 
         Document document = new Document(PageSize.A4, 0, 0, 0, 0);
 
@@ -48,35 +73,40 @@ public class PdfVisitReport
         try {
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(sharedData.getPdfReportFilename()));
             document.open();
-
-
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            var formattedDate = Optional.ofNullable(entity.getIzmeklejumaDatums())
+                    .map(date -> date.atZone(ZoneId.systemDefault()).format(formatter))
+                    .orElse("N/A");
             PdfPTable table01 = new PdfPTable(3);
             table01.setWidthPercentage(90f);
             table01.setWidths(new float[]{0.25f, 0.25f, 0.5f});
             table01.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+            //
+            table01.addCell(
+                    getTextCell("VĀRDS UZVĀRDS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseBoldFont, 10))
+            );
+            table01.addCell(
+                    getTextCell(entity.getPacients().getVardsUzvardsPacients(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseBoldFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("DATUMS "+ formattedDate, Element.ALIGN_RIGHT,Rectangle.NO_BORDER,new Font(baseBoldFont, 10))
+            );
+            //
             table01.addCell(
                     getTextCell("KOLPOSKOPIJA", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             table01.addCell(
                     getTextCell((entity.getVizitesAtkartojums() != null ? (entity.getVizitesAtkartojums() ? "Atkārtota" : "Pirmreizēja") : "N/A")
-                            , Element.ALIGN_LEFT,Rectangle.NO_BORDER));
-            table01.addCell(
-                    getTextCell("DATUMS "+ entity.getIzmeklejumaDatums().toString(), Element.ALIGN_RIGHT,Rectangle.NO_BORDER)
-            );
-
-            table01.addCell(
-                    getTextCell("VARDS UZVĀRDS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER)
-            );
-            table01.addCell(
-                    getTextCell(entity.getPacients().getVardsUzvardsPacients(), Element.ALIGN_LEFT,Rectangle.NO_BORDER)
-            );
+                            , Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10)));
             table01.addCell(getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
+            //
             table01.addCell(
-                    getTextCell("ALERĢIJAS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER)
+                    getTextCell("ALERĢIJAS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
             );
             table01.addCell(
                     getTextCell((entity.getAlergijas()?"IR":"NAV"), Element.ALIGN_LEFT,Rectangle.NO_BORDER)
             );
             table01.addCell(getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
+            //
             table01.setSpacingAfter(50f);
 
 
@@ -87,7 +117,7 @@ public class PdfVisitReport
             table02.setWidths(new float[]{0.25f, 0.75f});
             table02.setSpacingAfter(10f);
             var thisCell = table02.addCell(
-                    getTextCell("KOLPOSKOPIJA "+getTwoOptions(entity.getKolposkopijaAdekvata(), "Adekvāta", "neadekvāta"), Element.ALIGN_LEFT,Rectangle.BOX));
+                    getTextCell("KOLPOSKOPIJA "+getTwoOptions(entity.getKolposkopijaAdekvata(), "Adekvāta", "neadekvāta"), Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10)));
             thisCell.setColspan(2);
 
             String transformacijasZonasTips = entity.getTrnsformacijasZonasTips() == null ? "n/a"
@@ -95,17 +125,22 @@ public class PdfVisitReport
                     : entity.getTrnsformacijasZonasTips() == 2 ? "II"
                     : "III";
             thisCell = table02.addCell(
-                    getTextCell("Transformācijas zonas tips "+ transformacijasZonasTips, Element.ALIGN_RIGHT,Rectangle.BOX)
+                    getTextCell("Transformācijas zonas tips "+ transformacijasZonasTips, Element.ALIGN_RIGHT,Rectangle.BOX,new Font(baseFont, 10))
             );
             thisCell.setColspan(2);
+
+            {
+                var c = getTextCell("Pazīme ", Element.ALIGN_RIGHT,Rectangle.BOX,new Font(baseFont, 10));
+                c.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                table02.addCell(c);
+            }
+            {
+                var c = getTextCell("Punkti ");
+                c.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                table02.addCell(c);
+            }
             table02.addCell(
-                    getTextCell("Pazīme ")
-            );
-            table02.addCell(
-                    getTextCell("Punkti ")
-            );
-            table02.addCell(
-                    getTextCell(StaticTexts.P1_LABEL)
+                    getTextCell(StaticTexts.P1_LABEL, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table02.addCell(
                     getTextCell(
@@ -114,11 +149,11 @@ public class PdfVisitReport
                                         case 0 -> StaticTexts.P1_0P;
                                         case 1 -> StaticTexts.P1_1P;
                                         default -> StaticTexts.P1_2P;
-                                    })
+                                    }, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P2_LABEL)
+                    getTextCell(StaticTexts.P2_LABEL, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table02.addCell(
                     getTextCell(
@@ -127,11 +162,11 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P2_0P;
                                 case 1 -> StaticTexts.P2_1P;
                                 default -> StaticTexts.P2_2P;
-                            })
+                            }, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P3_LABEL)
+                    getTextCell(StaticTexts.P3_LABEL, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table02.addCell(
                     getTextCell(
@@ -140,11 +175,11 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P3_0P;
                                 case 1 -> StaticTexts.P3_1P;
                                 default -> StaticTexts.P3_2P;
-                            })
+                            }, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P4_LABEL)
+                    getTextCell(StaticTexts.P4_LABEL, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table02.addCell(
                     getTextCell(
@@ -153,11 +188,11 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P4_0P;
                                 case 1 -> StaticTexts.P4_1P;
                                 default -> StaticTexts.P4_2P;
-                            })
+                            }, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
 
             table02.addCell(
-                    getTextCell(StaticTexts.P5_LABEL)
+                    getTextCell(StaticTexts.P5_LABEL, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table02.addCell(
                     getTextCell(
@@ -166,7 +201,7 @@ public class PdfVisitReport
                                 case 0 -> StaticTexts.P5_0P;
                                 case 1 -> StaticTexts.P5_1P;
                                 default -> StaticTexts.P5_2P;
-                            })
+                            }, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             int totalPoints =
                     ((entity.getP1() != null) ? entity.getP1() : 0)
@@ -186,7 +221,7 @@ public class PdfVisitReport
                             case 5, 6 -> StaticTexts.P_TOTAL_POINTS_5_6;
                             case 7, 8, 9, 10 -> StaticTexts.P_TOTAL_POINTS_7_10;
                             default -> "n/a";
-                        }), Element.ALIGN_LEFT, Rectangle.BOX);
+                        }), Element.ALIGN_LEFT, Rectangle.BOX,new Font(baseFont, 10));
                 c.setBackgroundColor(BaseColor.LIGHT_GRAY);
                 table02.addCell(c);
             }
@@ -199,7 +234,7 @@ public class PdfVisitReport
             table03.setSpacingAfter(10f);
 
             {
-                PdfPCell cell = new PdfPCell(getTextCell(StaticTexts.M_LABEL));
+                PdfPCell cell = new PdfPCell(getTextCell(StaticTexts.M_LABEL, Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10)));
                 cell.setRowspan(2);
                 table03.addCell(cell);
             }
@@ -208,7 +243,7 @@ public class PdfVisitReport
                         StaticTexts.M1+" "+(entity.getM1() == null ? "n/a"
                             : entity.getM1() ? "Jā"
                             : "Nē"
-                )));
+                ), Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10)));
                 table03.addCell(cell);
             }
             {
@@ -216,50 +251,31 @@ public class PdfVisitReport
                         StaticTexts.M2+" "+(entity.getM2() == null ? "n/a"
                             : entity.getM2() ? "Jā"
                             : "Nē"
-                )));
+                ), Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10)));
                 table03.addCell(cell);
             }
 
-//            List listOfM = new List(List.UNORDERED);
-//
-//            listOfM.add(new ListItem(
-//                    getTextPhrase(StaticTexts.M1+" "+(entity.getM1() == null ? "n/a"
-//                            : entity.getM1() ? "Jā"
-//                            : "Nē"),16)
-//            ));
-//            listOfM.add(new ListItem(
-//                    getTextPhrase(StaticTexts.M2+" "+(entity.getM2() == null ? "n/a"
-//                            : entity.getM1() ? "Jā"
-//                            : "Nē"),16)
-//            ));
-//            {
-//                PdfPCell c = new PdfPCell();
-//                cell.addElement(listOfM);
-//                table03.addCell(c);
-//            }
-
-
             table03.addCell(
-                    getTextCell("Iepriekšēja terapija")
+                    getTextCell("Iepriekšēja terapija", Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table03.addCell(
-                    getTextCell(entity.getIepriekshVeiktaTerapija())
+                    getTextCell(entity.getIepriekshVeiktaTerapija(), Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table03.addCell(
-                    getTextCell("Anamnēze")
+                    getTextCell("Anamnēze", Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table03.addCell(
                     getTextCell(entity.getAnamneze())
             );
 
             table03.addCell(
-                    getTextCell("Rezultāti")
+                    getTextCell("Rezultāti", Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table03.addCell(
                     getTextCell(entity.getRezultati())
             );
             table03.addCell(
-                    getTextCell("Slēdziens")
+                    getTextCell("Slēdziens", Element.ALIGN_LEFT,Rectangle.BOX,new Font(baseFont, 10))
             );
             table03.addCell(
                     getTextCell(entity.getSledziens())
@@ -285,8 +301,11 @@ public class PdfVisitReport
         return value ? trueValue : falseValue;
     }
     public static PdfPCell getTextCell(String text, int alignment,int border) {
+        return getTextCell(text, alignment,border, FontFactory.getFont(FontFactory.HELVETICA,10));
+    }
+    public static PdfPCell getTextCell(String text, int alignment,int border, Font font) {
         FontSelector fs = new FontSelector();
-        Font font = FontFactory.getFont(FontFactory.HELVETICA, 10);
+        //Font font = FontFactory.getFont(fontSpec, 10);
         font.setColor(BaseColor.BLACK);
         fs.addFont(font);
         Phrase phrase = fs.process(text);

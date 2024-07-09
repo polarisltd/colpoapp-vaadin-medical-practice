@@ -3,15 +3,15 @@ package com.example.application.system;
 public class StaticTexts {
 
     public final static String WATCHER_PATH_PROPERTY="watcher.path";
-public final static String PDF_PATH_PROPERTY="pdf.path";
+    public final static String PDF_PATH_PROPERTY="pdf.path";
     public final static String PROPERTY_WATCHER_PATH_DEFAULT="C:/Users/polar/workspace/vaadin/colpoapp-vaadin/HelloWorld.pdf";
     public final static String P1_LABEL="Robežas/ malas/ virsma";
     public final static String
-            P1_0P="Kondilomatoze. Mikrokapilāras kontūras. Plakans bojājums ar neskaidrām robežām/ smalki robotām malām. Kantains, robains bojājums. Satelītu bojājumi iet pāri TZ.";
+            P1_0P="0p. Kondilomatoze. Mikrokapilāras kontūras. Plakans bojājums ar neskaidrām robežām/ smalki robotām malām. Kantains, robains bojājums. Satelītu bojājumi iet pāri TZ.";
     public final static String
-            P1_1P="Regulāras formas simetriskie bojājumi ar gludām taisnām kontūrām.";
+            P1_1P="1p. Regulāras formas simetriskie bojājumi ar gludām taisnām kontūrām.";
     public final static String
-            P1_2P="Biezas malas ar lobīšanas pazīmēm. Iekšējas robežas starp dažādām kolposkopiskā izskata zonām";
+            P1_2P="2p. Biezas malas ar lobīšanas pazīmēm. Iekšējas robežas starp dažādām kolposkopiskā izskata zonām";
 
 
     public final static String P2_2P="2p. Blīva, necaurspīdīga, AB (Austeru Balta), pelēka";
@@ -23,11 +23,11 @@ public final static String PDF_PATH_PROPERTY="pdf.path";
 
     public final static String P3_LABEL="Asinsvadu AV zīmējums";
     public final static String P3_0P="0p. Smalkie/ vienotā kalibra AV ar regulāru zarojumu. Smalka punktuācija (P) un vai mozaīka (M)";
-    public final static String P3_1P="Nav redzami";
+    public final static String P3_1P="1p. Nav redzami";
     public final static String P3_2P="2p. Rupja punktuācija vai mozaīka. Plaši izvietoti AV ar neregulāru zarojumu";
 
     public final static String P4_LABEL="Lugola prove";
-    public final static String P4_0P="2p. Pozitīva lugola prove (LP) - mahagonija krāsa";
+    public final static String P4_0P="0p. Pozitīva lugola prove (LP) - mahagonija krāsa";
     public final static String P4_1P="1p. Daļēji pozitīva Lugola proveraibs izskats";
     public final static String P4_2P="2p. Negatīva lugola prove (LN) - dzeltena krāsa";
 

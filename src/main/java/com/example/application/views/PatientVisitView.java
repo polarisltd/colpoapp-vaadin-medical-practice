@@ -151,18 +151,24 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         divFormTitle.add(getFormTitle());
 
 
-
         add(divFormTitle,
                 createButtonsLayout(),
-                izmeklejumaNr, izmeklejumaDatums, vizitesAtkartojums, skriningaNr, anamneze,
-                iepriekshVeiktaTerapija, alergijas, trnsformacijasZonasTips,
+                izmeklejumaNr,
+                izmeklejumaDatums,
+                vizitesAtkartojums,
+                skriningaNr,
+                anamneze,
+                iepriekshVeiktaTerapija,
+                alergijas,
+                trnsformacijasZonasTips,
                 kolposkopijaAdekvata,
                 featureGrid(),
-                pointsDiv,
-                rezultati, sledziens, nakosaKolposkopijasKontrole,
+                rezultati,
+                sledziens,
+                nakosaKolposkopijasKontrole,
                 imagesLayout,
                 addRefreshButton()
-                );
+        );
         KolposkopijaIzmeklejumsEntity visit = new KolposkopijaIzmeklejumsEntity();
         LocalDate currentDate = LocalDate.now();
         Instant currentInstant = currentDate.atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -209,8 +215,10 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         var layout = new VerticalLayout();
 
+        layout.add(this.pointsDiv);
 
-
+        pointsDiv.getStyle().set("font-size", "24px");
+        pointsDiv.getStyle().set("font-weight", "bold");
 
         Checkbox cb1_0p = new Checkbox();
         Checkbox cb1_1p = new Checkbox();
