@@ -72,6 +72,16 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextArea anamneze = new TextArea("Anamnēze");
     TextField iepriekshVeiktaTerapija = new TextField("Iepriekš Veikta Terapija");
     Checkbox alergijas = new Checkbox("Alergijas?");
+    TextField alergijasComment = new TextField("Alergiju uzskait'ijums");
+    TextField  pmPedejaMenesreize = new TextField("PM (pedeja_menesreize)");
+    TextField  dzemdibuSkaits = new TextField("Dzemdibu skaits");
+    TextField  pedejaGrutniecibaGads = new TextField("Pedeja Grutnieciba Gads");
+    Checkbox  kontracepcija  = new Checkbox("Kontracepcija");
+    TextField  kontracepcijaComment = new TextField("Kontracepcija Komentars");
+    Checkbox  smeke = new Checkbox("Smēķē");
+    TextField  smekeComment = new TextField("Smēķē Komentars");
+    TextField  pedejaCitologiskaUztriepe = new TextField("pedejā citologiskā uztriepe (datums, rezultāts)");
+    TextField  hroniskasSaslimsanasMedikamentuLietosana = new TextField("hroniskas saslimšanas, medikamentu_lietošana");
     TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips");
     TextArea rezultati = new TextArea("Rezultāti");
     TextArea sledziens = new TextArea("Slēdziens");
@@ -160,6 +170,16 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 anamneze,
                 iepriekshVeiktaTerapija,
                 alergijas,
+                alergijasComment,
+                pmPedejaMenesreize,
+                dzemdibuSkaits,
+                pedejaGrutniecibaGads,
+                kontracepcija,
+                kontracepcijaComment,
+                smeke,
+                smekeComment,
+                pedejaCitologiskaUztriepe,
+                hroniskasSaslimsanasMedikamentuLietosana,
                 trnsformacijasZonasTips,
                 kolposkopijaAdekvata,
                 featureGrid(),

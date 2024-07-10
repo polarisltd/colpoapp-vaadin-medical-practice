@@ -55,11 +55,41 @@ public class KolposkopijaIzmeklejumsEntity implements Serializable {
     private String anamneze;
 
     //@Lob
-    @Column(name = "ieprieksh_veikta_terapija")
+    @Column(name = "ieprieksh_veikta_terapija_datums_rezultats")
     private String iepriekshVeiktaTerapija;
 
     @Column(name = "alergijas")
     private Boolean alergijas;
+
+    @Column(name = "alergijas_comment")
+    private String alergijasComment;
+
+    @Column(name = "pm_pedeja_menesreize")
+    private String pmPedejaMenesreize;
+
+    @Column(name = "dzemdibu_skaits")
+    private Integer dzemdibuSkaits;
+
+    @Column(name = "pedeja_grutnieciba_gads")
+    private String pedejaGrutniecibaGads;
+
+    @Column(name = "kontracepcija")
+    private Boolean kontracepcija;
+
+    @Column(name = "kontracepcija_comment")
+    private String kontracepcijaComment;
+
+    @Column(name = "smeke")
+    private Boolean smeke;
+
+    @Column(name = "smeke_comment")
+    private String smekeComment;
+
+    @Column(name = "pedeja_citologiska_uztriepe_datums_rezultats")
+    private String pedejaCitologiskaUztriepe;
+
+    @Column(name = "hroniskas_saslimsanas_medikamentu_lietosana")
+    private String hroniskasSaslimsanasMedikamentuLietosana;
 
     @Column(name = "kolposkopija_adekvata")
     private Boolean kolposkopijaAdekvata;

@@ -83,14 +83,27 @@ public class PdfVisitReport
             table01.getDefaultCell().setBorder(Rectangle.NO_BORDER);
             //
             table01.addCell(
-                    getTextCell("VĀRDS UZVĀRDS ", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseBoldFont, 10))
+                    getTextCell("Vārds Uzvārds ", Element.ALIGN_LEFT, Rectangle.NO_BORDER, new Font(baseBoldFont, 10))
             );
             table01.addCell(
-                    getTextCell(entity.getPacients().getVardsUzvardsPacients(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseBoldFont, 10))
+                    getTextCell(entity.getPacients().getVardsUzvardsPacients(), Element.ALIGN_LEFT, Rectangle.NO_BORDER, new Font(baseBoldFont, 10))
             );
             table01.addCell(
-                    getTextCell("DATUMS "+ formattedDate, Element.ALIGN_RIGHT,Rectangle.NO_BORDER,new Font(baseBoldFont, 10))
+                    getTextCell("DATUMS " + formattedDate, Element.ALIGN_RIGHT, Rectangle.NO_BORDER, new Font(baseBoldFont, 10))
             );
+            //
+            table01.addCell(
+                    getTextCell("Personas Kods ", Element.ALIGN_LEFT, Rectangle.NO_BORDER, new Font(baseBoldFont, 10))
+            );
+
+            {
+                var cell = getTextCell(entity.getPacients().getPersonasKods(), Element.ALIGN_LEFT, Rectangle.NO_BORDER, new Font(baseBoldFont, 10));
+                cell.setColspan(2);
+                table01.addCell(
+                        cell
+                );
+            }
+
             //
             table01.addCell(
                     getTextCell("KOLPOSKOPIJA", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
@@ -105,8 +118,59 @@ public class PdfVisitReport
             table01.addCell(
                     getTextCell((entity.getAlergijas()?"IR":"NAV"), Element.ALIGN_LEFT,Rectangle.NO_BORDER)
             );
-            table01.addCell(getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
+            table01.addCell(getTextCell(entity.getAlergijasComment()!=null? entity.getAlergijasComment() : "", Element.ALIGN_LEFT,Rectangle.NO_BORDER));
             //
+            table01.addCell(
+                    getTextCell("pēdējā mēnešreize: "+entity.getPmPedejaMenesreize(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("dzemdību skaits: "+entity.getDzemdibuSkaits(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("pēdējās grūtniecības gads: "+entity.getPedejaGrutniecibaGads(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+//
+            table01.addCell(
+                    getTextCell("Kontracepcija: "+(entity.getKontracepcija() ?"Jā":"Nē"), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell(entity.getKontracepcijaComment(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+//
+            table01.addCell(
+                    getTextCell("Smēķē: "+(entity.getSmeke()?"Jā":"Nē")   , Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell(entity.getSmekeComment(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+//
+            table01.addCell(
+                    getTextCell("Pēdējā citoloģiskā uztriepe (datums, rezultāts) :", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell(entity.getPedejaCitologiskaUztriepe(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            //
+            table01.addCell(
+                    getTextCell("Hroniskas saslimšanas, medikamentu terāpija :", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell(entity.getHroniskasSaslimsanasMedikamentuLietosana(), Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            table01.addCell(
+                    getTextCell("", Element.ALIGN_LEFT,Rectangle.NO_BORDER,new Font(baseFont, 10))
+            );
+            //
+
             table01.setSpacingAfter(50f);
 
 
