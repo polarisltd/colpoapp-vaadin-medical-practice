@@ -90,7 +90,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     //VerticalLayout imagesLayout = new VerticalLayout();
     Button save = new Button("Save (F9)");
     Button close = new Button("Cancel");
-    Button btnPatientSelector = new Button("Pacients");
 
     Button btnPrintPdfReport = new Button("Print PDF report");
 
@@ -484,8 +483,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         close.addClickListener(event -> fireEvent(new CloseEvent(this)));
 
-        btnPatientSelector.addClickListener(e -> UI.getCurrent().navigate(""));
-
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
         btnPrintPdfReport.addClickListener(event -> {
@@ -505,7 +502,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             dialog.open();
     });
 
-        return new HorizontalLayout(btnPatientSelector, save, close, addPatientSelectionButton(),btnPrintPdfReport);
+        return new HorizontalLayout( addPatientSelectionButton(),save, btnPrintPdfReport,close);
     }
 
 
