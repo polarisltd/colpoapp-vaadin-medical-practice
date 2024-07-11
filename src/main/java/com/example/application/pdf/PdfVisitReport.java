@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -25,8 +26,8 @@ public class PdfVisitReport
     KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository;
     ImageRepository imageRepository;
     final public String PDF_FILE_NAME = "HelloWorld.pdf";
-    final static String FONT_FILE_PATH = "c:/windows/fonts/arial.ttf";
-    final static String FONT_BOLD_FILE_PATH = "c:/windows/fonts/arialbd.ttf";
+    final static String FONT_FILE_PATH = "/fonts/arial.ttf";
+    final static String FONT_BOLD_FILE_PATH = "/fonts/arialbd.ttf";
     final static BaseFont baseFont = getBaseFont();
     final static BaseFont baseBoldFont = getBoldBaseFont();
     public PdfVisitReport(
@@ -38,9 +39,12 @@ public class PdfVisitReport
                 this.imageRepository = imageRepository;
     }
 
+
+
     private static BaseFont getBaseFont() {
         try {
-            return BaseFont.createFont(FONT_FILE_PATH, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            String fontPath = Objects.requireNonNull(PdfVisitReport.class.getResource(FONT_FILE_PATH)).getPath();
+            return BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
         } catch (Exception e) {
             LOGGER.error("Error while loading font", e);
             return null;
