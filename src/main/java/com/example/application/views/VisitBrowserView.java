@@ -6,7 +6,6 @@ import com.example.application.pdf.PdfVisitReport;
 import com.example.application.services.CrmService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -15,13 +14,11 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.core.env.Environment;
 
 import java.util.Map;
 
-import static com.example.application.helpers.Helpers.asProperties;
-import static com.example.application.system.StaticTexts.PDF_PATH_PROPERTY;
 import static com.example.application.views.PatientVisitView.getPdfReportFilename;
+import static com.example.application.views.PdfViewerView.showPdfViewerDialog;
 
 @PermitAll
 @Route(value = "visitBrowser", layout = MainLayout.class)
@@ -37,12 +34,10 @@ public class VisitBrowserView extends VerticalLayout{
     Map<String,Object> appProperties;
     public VisitBrowserView(SharedData sharedData,
                             CrmService service,
-                            Environment env,
                             PdfVisitReport pdfReport) {
         this.service = service;
         this.sharedData = sharedData;
         this.pdfReport = pdfReport;
-        this.appProperties = asProperties(env);
         configureGrid();
 
         VerticalLayout gridPart = new VerticalLayout();
@@ -72,24 +67,17 @@ public class VisitBrowserView extends VerticalLayout{
             button.addClickListener(click -> {
                 System.out.println("select button on grid row clicked for item: " + item);
                 sharedData.setSelectedVisitId(item.getId());
-                String filePathPrefix = this.appProperties.get(PDF_PATH_PROPERTY).toString();
-                sharedData.setPdfReportFilename(getPdfReportFilename(item, filePathPrefix));
+                sharedData.setPdfReportFilename(getPdfReportFilename(item, this.sharedData.getPdfPath()));
 
                 this.pdfReport.generate();
                 // viewer
 
-                Dialog dialog = new Dialog();
-                PdfViewerView pdfViewerView = new PdfViewerView(sharedData);
-                Button closeButton = new Button("Close", event_ -> dialog.close());
-                dialog.add(closeButton, pdfViewerView);
-                dialog.setSizeFull();
-                dialog.open();
+                showPdfViewerDialog(sharedData);
             });
 
             return button;
         }).setHeader("Action");
     }
-
 
     private Component getToolbar() {
         filterText.setPlaceholder("Filter by name...");

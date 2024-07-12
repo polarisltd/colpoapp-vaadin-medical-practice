@@ -36,11 +36,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.support.ResourcePropertySource;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -49,15 +45,10 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.StreamSupport;
 
-import static com.example.application.helpers.Helpers.asProperties;
-import static com.example.application.system.StaticTexts.PDF_PATH_PROPERTY;
-import static com.example.application.system.StaticTexts.WATCHER_PATH_PROPERTY;
-
+import static com.example.application.views.PdfViewerView.showPdfViewerDialog;
 
 @PermitAll
 @Route(value = "addVisit", layout = MainLayout.class)
@@ -110,10 +101,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     final private ImageRepository imageRepository;
     final private DoctorSelectorRepository doctorSelectorRepository;
 
-    Map<String,Object> appProperties;
-
-    final private String watcherSercvicePath;
-
     List<GridRow> items;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PatientVisitView.class);
@@ -123,7 +110,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             , SharedData sharedData,
               ImageRepository imageRepository,
               DoctorSelectorRepository doctorSelectorRepository,
-              Environment env,
               PdfVisitReport pdfReport
     ) {
 
@@ -131,12 +117,12 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         this.sharedData = sharedData;
         this.imageRepository = imageRepository;
         this.doctorSelectorRepository = doctorSelectorRepository;
-        this.appProperties = asProperties(env);
         this.pdfReport = pdfReport;
 
+        LOGGER.info("Watcher path: %s".formatted(sharedData.getWatcherPath()));
+        LOGGER.info("PDF path: %s".formatted(sharedData.getPdfPath()));
 
-        watcherSercvicePath = this.appProperties.get(WATCHER_PATH_PROPERTY).toString();
-        watchDirectory(watcherSercvicePath);
+        watchDirectory(sharedData.getWatcherPath());
         addClassName("patient-visit-view");
         binder.forField(izmeklejumaDatums)
                 .withConverter(
@@ -353,12 +339,12 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         // Fetch images from the database
         List<ImageEntity> imageEntities = imageRepository.findByVisitId((this.currentVisitId!=null)?this.currentVisitId.intValue():0);
-        imageEntities.forEach(imageEntity -> addImage(imageEntity));
+        imageEntities.forEach(this::addImage);
     }
 
     void sampleImage() {
         try{
-        var watcherSercvicePath = this.appProperties.get(WATCHER_PATH_PROPERTY).toString();
+        var watcherSercvicePath = this.sharedData.getWatcherPath();
 
         List.of(watcherSercvicePath+"/"+SAMPLE_IMAGE).forEach(imagePath -> {
 
@@ -384,7 +370,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             LOGGER.info("Loading image from path: %s".formatted(entity.getImagePath()));
             StreamResource resource = new StreamResource("image", () -> {
                 try {
-                    return new FileInputStream(new File(entity.getImagePath()));
+                    return new FileInputStream(entity.getImagePath());
                 } catch (FileNotFoundException e) {
                     LOGGER.error("error reading image",e);
                     return null;
@@ -444,10 +430,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     }
 
     Component getFormTitle() {
-//        var dakterisSelector = doctorSelectorRepository.search()
-//                .stream()
-//                .findFirst()
-//                .orElse(null);
 
         DakterisEntity dakterisEntity = doctorSelectorRepository.search()
                 .stream()
@@ -487,23 +469,17 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         btnPrintPdfReport.addClickListener(event -> {
 
-            String filePathPrefix = this.appProperties.get(PDF_PATH_PROPERTY).toString();
+            String filePathPrefix = sharedData.getPdfPath();
 
             sharedData.setPdfReportFilename(getPdfReportFilename(binder.getBean(),filePathPrefix));
 
             this.pdfReport.generate();
-            // viewer
-
-            Dialog dialog = new Dialog();
-            PdfViewerView pdfViewerView = new PdfViewerView(sharedData);
-            Button closeButton = new Button("Close", event_ -> dialog.close());
-            dialog.add(closeButton, pdfViewerView);
-            dialog.setSizeFull();
-            dialog.open();
+            showPdfViewerDialog(sharedData);
     });
 
         return new HorizontalLayout( addPatientSelectionButton(),save, btnPrintPdfReport,close);
     }
+
 
 
     public static String getPdfReportFilename(KolposkopijaIzmeklejumsEntity entity, String filePathPrefix) {
@@ -559,14 +535,6 @@ public void beforeEnter(BeforeEnterEvent event) {
     drId = event.getRouteParameters().getInteger(PATIENT_ID_ROUTE_PARAM).orElse(null);
 }
 
-    private Div bold(Text textComponent) {
-        Div div = new Div(textComponent);
-        div.getStyle().set("font-weight", "bold"); // Add your desired style here
-        div.getStyle().set("color", "blue");
-        return div;
-    }
-
-
     private void watchDirectory(String directoryPath) {
         LOGGER.info("Watching directory: %s".formatted(directoryPath));
         try {
@@ -603,7 +571,7 @@ public void beforeEnter(BeforeEnterEvent event) {
             thread.setDaemon(true);
             thread.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("watcher service failure",e);
         }
     }
 

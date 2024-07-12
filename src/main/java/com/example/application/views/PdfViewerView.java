@@ -2,6 +2,8 @@ package com.example.application.views;
 
 import com.example.application.data.SharedData;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -53,7 +55,14 @@ public class PdfViewerView extends VerticalLayout {
         add(formTitle, pdfViewer);
     }
 
-
+    static void showPdfViewerDialog(SharedData sharedData){
+        Dialog dialog = new Dialog();
+        PdfViewerView pdfViewerView = new PdfViewerView(sharedData);
+        Button closeButton = new Button("Close", event_ -> dialog.close());
+        dialog.add(closeButton, pdfViewerView);
+        dialog.setSizeFull();
+        dialog.open();
+    }
 String getFilenameFromAbsolutePath(String absolutePath){
     return Paths.get(absolutePath).getFileName().toString();
 }
