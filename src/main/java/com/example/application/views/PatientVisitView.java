@@ -322,6 +322,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             });
             PatientSelectorView patientSelectionView = new PatientSelectorView(sharedData, service);
             patientSelectionView.setDialog(dialog);
+            patientSelectionView.setOnPatientSelectedCallback(this::validateAndSave);
             dialog.setSizeFull();
             dialog.add(patientSelectionView);
             dialog.open();
@@ -468,6 +469,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
         btnPrintPdfReport.addClickListener(event -> {
+
+            validateAndSave();
 
             String filePathPrefix = sharedData.getPdfPath();
 

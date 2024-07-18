@@ -1,20 +1,23 @@
 package com.example.application.pdf;
 
-import com.example.application.data.*;
+import com.example.application.data.ImageRepository;
+import com.example.application.data.KolposkopijaIzmeklejumsEntity;
+import com.example.application.data.KolposkopijaIzmeklejumsRepository;
+import com.example.application.data.SharedData;
 import com.example.application.system.StaticTexts;
-import com.example.application.views.PatientVisitView;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -28,8 +31,8 @@ public class PdfVisitReport
     final public String PDF_FILE_NAME = "HelloWorld.pdf";
     final static String FONT_FILE_PATH = "/fonts/arial.ttf";
     final static String FONT_BOLD_FILE_PATH = "/fonts/arialbd.ttf";
-    final static BaseFont baseFont = getBaseFont();
-    final static BaseFont baseBoldFont = getBoldBaseFont();
+    final static BaseFont baseFont = getBaseFont(FONT_FILE_PATH);
+    final static BaseFont baseBoldFont = getBaseFont(FONT_BOLD_FILE_PATH);
     public PdfVisitReport(
             SharedData sharedData,
             KolposkopijaIzmeklejumsRepository kolposkopijaIzmeklejumsRepository,
@@ -41,13 +44,21 @@ public class PdfVisitReport
 
 
 
-    private static BaseFont getBaseFont() {
+    private static BaseFont getBaseFont(String fontPath) {
         try {
-            String fontPath = Objects.requireNonNull(PdfVisitReport.class.getResource(FONT_FILE_PATH)).getPath();
-            return BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            InputStream fontStream = PdfVisitReport.class.getResourceAsStream(fontPath);
+            if (fontStream == null) {
+                throw new IllegalArgumentException("Font file not found: " + fontPath);
+            }
+            File tempFile = File.createTempFile("font", ".ttf");
+            tempFile.deleteOnExit();
+            try (FileOutputStream out = new FileOutputStream(tempFile)) {
+                IOUtils.copy(fontStream, out);
+            }
+            LOGGER.info("Loading font file: " + tempFile.getAbsolutePath()+" exists: "+tempFile.exists());
+            return BaseFont.createFont(tempFile.getAbsolutePath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
         } catch (Exception e) {
-            LOGGER.error("Error while loading font", e);
-            return null;
+            throw new RuntimeException("Failed to load font file: " + fontPath, e);
         }
     }
     private static BaseFont getBoldBaseFont() {

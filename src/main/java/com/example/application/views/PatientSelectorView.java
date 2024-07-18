@@ -31,10 +31,12 @@ public class PatientSelectorView extends HorizontalLayout implements PatientForm
     Grid<PacientsEntity> grid = new Grid<>(PacientsEntity.class);
     TextField filterText = new TextField();
     private final Button btnClose = new Button("Close");
-    //private final Button btnAdd = new Button("Add Patient");
+
     final private CrmService service;
     final private SharedData sharedData;
     private Dialog dialog = null;
+
+    private Runnable onPatientSelectedCallback;
 
     PatientFormView patientFormView;
     public PatientSelectorView(SharedData sharedData, CrmService service) {
@@ -50,7 +52,9 @@ public class PatientSelectorView extends HorizontalLayout implements PatientForm
 
         patientFormView.setPatientFormListener(this);
     }
-
+    public void setOnPatientSelectedCallback(Runnable callback) {
+        this.onPatientSelectedCallback = callback;
+    }
     public void setDialog(Dialog dialog) {
         this.dialog = dialog;
     }
@@ -77,6 +81,9 @@ public class PatientSelectorView extends HorizontalLayout implements PatientForm
             button.addClickListener(click -> {
                 System.out.println("Button clicked for item: " + item);
                 sharedData.setSelectedPatient(item);
+                    if (onPatientSelectedCallback != null) {
+                        onPatientSelectedCallback.run();
+                    }
                 Optional.ofNullable(dialog).ifPresent(Dialog::close);
             });
             return button;
