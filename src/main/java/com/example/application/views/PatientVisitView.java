@@ -25,6 +25,7 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
+import com.vaadin.flow.data.converter.StringToIntegerConverter;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -59,24 +60,37 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     DatePicker izmeklejumaDatums = new DatePicker("Izmeklējuma Datums");
     Checkbox vizitesAtkartojums = new Checkbox("Vizites Atkartojums");
     TextField skriningaNr = new TextField("Skrīninga Nr");
-    Checkbox kolposkopijaAdekvata  = new Checkbox("Kolposkopija adekvata?");
+    Checkbox kolposkopijaAdekvata  = new Checkbox("Kolposkopija adekvāta?");
     TextArea anamneze = new TextArea("Anamnēze");
     TextField iepriekshVeiktaTerapija = new TextField("Iepriekš Veikta Terapija");
-    Checkbox alergijas = new Checkbox("Alergijas?");
-    TextField alergijasComment = new TextField("Alergiju uzskait'ijums");
-    TextField  pmPedejaMenesreize = new TextField("PM (pedeja_menesreize)");
-    TextField  dzemdibuSkaits = new TextField("Dzemdibu skaits");
-    TextField  pedejaGrutniecibaGads = new TextField("Pedeja Grutnieciba Gads");
+    Checkbox alergijas = new Checkbox("Alerģijas?");
+    TextField alergijasComment = new TextField("Alerģiju uzskaitījums");
+    TextField  pmPedejaMenesreize = new TextField("PM (pedejā_menešreize)");
+    TextField  dzemdibuSkaits = new TextField("Dzemdību skaits");
+    TextField  pedejaGrutniecibaGads = new TextField("Dzemdību veids");
     Checkbox  kontracepcija  = new Checkbox("Kontracepcija");
-    TextField  kontracepcijaComment = new TextField("Kontracepcija Komentars");
+    TextField  kontracepcijaComment = new TextField("Kontracepcija Komentārs");
     Checkbox  smeke = new Checkbox("Smēķē");
     TextField  smekeComment = new TextField("Smēķē Komentars");
     TextField  pedejaCitologiskaUztriepe = new TextField("pedejā citologiskā uztriepe (datums, rezultāts)");
     TextField  hroniskasSaslimsanasMedikamentuLietosana = new TextField("hroniskas saslimšanas, medikamentu_lietošana");
-    TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips");
-    TextArea rezultati = new TextArea("Rezultāti");
+    TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips (0=unknown, 1-3)");
     TextArea sledziens = new TextArea("Slēdziens");
     TextField nakosaKolposkopijasKontrole = new TextField("Nākošā Kolposkopijas Kontrole");
+
+    private Checkbox m1 = new Checkbox(StaticTexts.M1);
+    private Checkbox m2 = new Checkbox(StaticTexts.M2);
+
+    Div divManipulacijasVizLaika = new Div(new Div(StaticTexts.M_LABEL), m1, m2);
+
+    private Checkbox r1 = new Checkbox(StaticTexts.R1);
+    private Checkbox r2 = new Checkbox(StaticTexts.R2);
+    private Checkbox r3 = new Checkbox(StaticTexts.R3);
+    private Checkbox r4 = new Checkbox(StaticTexts.R4);
+    private Checkbox r5 = new Checkbox(StaticTexts.R5);
+    private Checkbox r6 = new Checkbox(StaticTexts.R6);
+    Div divRezultati = new Div(new Div(StaticTexts.R_LABEL), r1, r2, r3, r4, r5, r6);
+
     Div divFormTitle = new Div();
     //VerticalLayout imagesLayout = new VerticalLayout();
     Button save = new Button("Save (F9)");
@@ -122,8 +136,10 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         LOGGER.info("Watcher path: %s".formatted(sharedData.getWatcherPath()));
         LOGGER.info("PDF path: %s".formatted(sharedData.getPdfPath()));
 
+        resetSharedData();
         watchDirectory(sharedData.getWatcherPath());
         addClassName("patient-visit-view");
+
         binder.forField(izmeklejumaDatums)
                 .withConverter(
                         new Converter<LocalDate, Instant>() {
@@ -137,13 +153,34 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                             }
                         })
                 .bind(KolposkopijaIzmeklejumsEntity::getIzmeklejumaDatums, KolposkopijaIzmeklejumsEntity::setIzmeklejumaDatums);
+
+        binder.forField(trnsformacijasZonasTips)
+                .withConverter(new StringToIntegerConverter("Must be a number") {
+                    @Override
+                    public Result<Integer> convertToModel(String value, ValueContext context) {
+                        if (value == null || value.isEmpty()) {
+                            return Result.ok(null);
+                        }
+                        return super.convertToModel(value, context);
+                    }
+                    @Override
+                    public String convertToPresentation(Integer value, ValueContext context) {
+                        if (value == null) {
+                            return "0";
+                        }
+                        return super.convertToPresentation(value, context);
+                    }
+                })
+
+                .withValidator(value -> value == null || value == 0 || value == 1 || value == 2 || value == 3, "Only integers 1, 2, or 3 are allowed")
+                .bind(KolposkopijaIzmeklejumsEntity::getTrnsformacijasZonasTips, KolposkopijaIzmeklejumsEntity::setTrnsformacijasZonasTips);
+
         binder.bindInstanceFields(this);
-
-
 
         sampleImage();  // add sample to imagesLayout
 
         divFormTitle.add(getFormTitle());
+
 
 
         add(divFormTitle,
@@ -168,7 +205,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 trnsformacijasZonasTips,
                 kolposkopijaAdekvata,
                 featureGrid(),
-                rezultati,
+                divManipulacijasVizLaika,
+                divRezultati,
                 sledziens,
                 nakosaKolposkopijasKontrole,
                 imagesLayout,
@@ -186,7 +224,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         UI.getCurrent().addPollListener(e -> refreshImagesLayout());
     }
 
-
+    private void resetSharedData() {
+        sharedData.setSelectedPatient(null);
+    }
     void calcPoints(){
         pointsDiv.removeAll();
         AtomicInteger count = new AtomicInteger(0);
@@ -348,16 +388,16 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         var watcherSercvicePath = this.sharedData.getWatcherPath();
 
         List.of(watcherSercvicePath+"/"+SAMPLE_IMAGE).forEach(imagePath -> {
-
+            LOGGER.info("Loading sample image from path: %s".formatted(imagePath));
             StreamResource resource = new StreamResource("image", () -> {
                 try {
                     return new FileInputStream(imagePath);
                 } catch (FileNotFoundException e) {
-                    LOGGER.error("error reading sample image",e);
+                    LOGGER.error("error reading sample image %s".formatted(imagePath),e);
                     return null;
                 }
             });
-            Image image = new Image(resource, "alt text");
+            Image image = new Image(resource, "sample image");
             image.setWidth("400px");  // Set the width of the image to 400 pixels
             this.imagesLayout.add(image);
         });

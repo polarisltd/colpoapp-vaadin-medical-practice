@@ -46,4 +46,13 @@ public class StaticTexts {
     public final static String M1="Atkārtota citoloģiska analīze";
     public final static String M2="HPV tests";
 
+
+    //
+    public final static String R_LABEL="Rezultāti";
+    public final static String R1="NORMA";
+    public final static String R2="REAKTĪVAS IZMAIŅAS/HPV I";
+    public final static String R3="I PAKĀPES IZMAIŅAS/LSIL";
+    public final static String R4="II PAKĀPES IZMAIŅAS/HSIL";
+    public final static String R5="GLANDULĀRA ATIPIJA";
+    public final static String R6="VĒZIS";
 }

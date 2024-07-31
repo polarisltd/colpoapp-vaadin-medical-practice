@@ -129,8 +129,23 @@ public class KolposkopijaIzmeklejumsEntity implements Serializable {
     @Column(name = "m_3", nullable = true)
     private Boolean m3;
 
-    @Column(name = "rezultati")
-    private String rezultati;
+    @Column(name = "r_1", nullable = true)
+    private Boolean r1;
+
+    @Column(name = "r_2", nullable = true)
+    private Boolean r2;
+
+    @Column(name = "r_3", nullable = true)
+    private Boolean r3;
+
+    @Column(name = "r_4", nullable = true)
+    private Boolean r4;
+
+    @Column(name = "r_5", nullable = true)
+    private Boolean r5;
+
+    @Column(name = "r_6", nullable = true)
+    private Boolean r6;
 
     @Column(name = "sledziens")
     private String sledziens;

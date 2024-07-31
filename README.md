@@ -41,6 +41,7 @@ run locally production mode
 ```
 mvn clean package -DskipTests -Pproduction
 java  -Dspring.profiles.active=production -jar target/colpoapp-vaadin-1.0-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError
+# will listen on 8084
 ```
 
 please note -D parameter should go before jar parameter or it will be ignored.
@@ -62,3 +63,8 @@ Containers on the same network can reach each other using the service name
 as the hostname.
 
 
+postgres in production
+
+CREATE ROLE colpoowner WITH LOGIN PASSWORD 'prakse';
+CREATE DATABASE colpoapp OWNER colpoowner;
+GRANT ALL PRIVILEGES ON DATABASE colpoapp TO colpoowner;

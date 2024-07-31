@@ -138,14 +138,14 @@ public class PdfVisitReport
             table01.addCell(getTextCellDefaultNoBorder(entity.getAlergijasComment() != null ? entity.getAlergijasComment() : ""));
             //
             table01.addCell(
-                    getTextCellDefaultNoBorder("pēdējā mēnešreize: " + entity.getPmPedejaMenesreize())
-            );
+                    getTextCellDefaultNoBorder("pēdējā mēnešreize: " + (entity.getPmPedejaMenesreize() == null ? "" : entity.getPmPedejaMenesreize())
+                    ));
             table01.addCell(
-                    getTextCellDefaultNoBorder("dzemdību skaits: " + entity.getDzemdibuSkaits())
-            );
+                    getTextCellDefaultNoBorder("dzemdību skaits: " + (entity.getDzemdibuSkaits() == null ? "" : entity.getDzemdibuSkaits())
+                    ));
             table01.addCell(
-                    getTextCellDefaultNoBorder("Pēdējās grūtniecības gads: " + entity.getPedejaGrutniecibaGads())
-            );
+                    getTextCellDefaultNoBorder("Dzemdību veids: " + (entity.getPedejaGrutniecibaGads() == null ? "" : entity.getPedejaGrutniecibaGads())
+                    ));
 //
             table01.addCell(
                     getTextCellDefaultNoBorder("Kontracepcija: " + (entity.getKontracepcija() ? "Jā" : "Nē"))
@@ -182,12 +182,29 @@ public class PdfVisitReport
             {
                 var cell = getTextCellDefaultNoBorder(entity.getHroniskasSaslimsanasMedikamentuLietosana());
                 cell.setColspan(2);
-                table01.addCell( cell);
+                table01.addCell(cell);
             }
 
+            table01.addCell(
+                    getTextCellDefaultNoBorder("Iepriekšēja terapija")
+            );
+            {
+                var cell = getTextCellDefaultNoBorder(entity.getIepriekshVeiktaTerapija());
+                cell.setColspan(2);
+                table01.addCell(cell);
+
+            }
+            table01.addCell(
+                    getTextCellDefaultNoBorder("Anamnēze")
+            );
+            {
+                var cell = getTextCellDefaultNoBorder(entity.getAnamneze());
+                cell.setColspan(2);
+                table01.addCell(cell);
+            }
             //
 
-            table01.setSpacingAfter(50f);
+            table01.setSpacingAfter(20f);
 
 
             document.add(table01);
@@ -200,7 +217,8 @@ public class PdfVisitReport
                     getTextCellDefaultBoxed("KOLPOSKOPIJA "+getTwoOptions(entity.getKolposkopijaAdekvata(), "Adekvāta", "neadekvāta")));
             thisCell.setColspan(2);
 
-            String transformacijasZonasTips = entity.getTrnsformacijasZonasTips() == null ? "n/a"
+            String transformacijasZonasTips =
+                      entity.getTrnsformacijasZonasTips() == 0 ? "n/a"
                     : entity.getTrnsformacijasZonasTips() == 1 ? "I"
                     : entity.getTrnsformacijasZonasTips() == 2 ? "II"
                     : "III";
@@ -336,23 +354,10 @@ public class PdfVisitReport
             }
 
             table03.addCell(
-                    getTextCellDefaultNoBorder("Iepriekšēja terapija")
-            );
-            table03.addCell(
-                    getTextCellDefaultNoBorder(entity.getIepriekshVeiktaTerapija())
-            );
-            table03.addCell(
-                    getTextCellDefaultNoBorder("Anamnēze")
-            );
-            table03.addCell(
-                    getTextCellDefaultNoBorder(entity.getAnamneze())
-            );
-
-            table03.addCell(
                     getTextCellDefaultNoBorder("Rezultāti")
             );
             table03.addCell(
-                    getTextCellDefaultNoBorder(entity.getRezultati())
+                    getRezultatiTable(entity)
             );
             table03.addCell(
                     getTextCellDefaultNoBorder("Slēdziens")
@@ -374,6 +379,34 @@ public class PdfVisitReport
         } catch (DocumentException | FileNotFoundException e) {
             LOGGER.error("Error while creating PDF", e);
         }
+    }
+
+
+    private PdfPTable getRezultatiTable(KolposkopijaIzmeklejumsEntity entity){
+        PdfPTable table = new PdfPTable(1);
+
+        if(notNullAndTrue(entity.getR1())) {
+            table.addCell(getTextCellDefaultNoBorder(StaticTexts.R1 ));
+        }
+        if(notNullAndTrue(entity.getR2())) {
+            table.addCell(getTextCellDefaultNoBorder(StaticTexts.R2 ));
+        }
+        if(notNullAndTrue(entity.getR3())) {
+            table.addCell(getTextCellDefaultNoBorder(StaticTexts.R3 ));
+        }
+        if(notNullAndTrue(entity.getR4())) {
+            table.addCell(getTextCellDefaultNoBorder(StaticTexts.R4 ));
+        }
+        if(notNullAndTrue(entity.getR5())) {
+            table.addCell(getTextCellDefaultNoBorder(StaticTexts.R5 ));
+        }
+        if(notNullAndTrue(entity.getR6())) {
+            table.addCell(getTextCellDefaultNoBorder(StaticTexts.R6 ));
+        }
+        return table;
+    }
+    public static boolean notNullAndTrue(Boolean value) {
+        return value != null && value;
     }
 
     String getTwoOptions(Boolean value, String trueValue, String falseValue) {
