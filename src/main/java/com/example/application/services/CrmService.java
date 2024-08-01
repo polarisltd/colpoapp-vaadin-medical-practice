@@ -4,6 +4,8 @@ import com.example.application.data.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -51,6 +53,10 @@ public class CrmService {
         } else {
             return kolposkopijaIzmeklejumsRepository.search(stringFilter);
         }
+    }
+
+    public List<KolposkopijaIzmeklejumsEntity> findAllByVisitDateAfter(Instant startDate) {
+        return kolposkopijaIzmeklejumsRepository.findAllByVisitDateAfter(startDate);
     }
 
     public List<DakterisEntity> findAllDrs(String stringFilter) {
