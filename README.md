@@ -68,3 +68,10 @@ postgres in production
 CREATE ROLE colpoowner WITH LOGIN PASSWORD 'prakse';
 CREATE DATABASE colpoapp OWNER colpoowner;
 GRANT ALL PRIVILEGES ON DATABASE colpoapp TO colpoowner;
+
+# OpenVPN for production
+
+https://polarisit.openvpn.com/settings/dns-records
+
+
+
