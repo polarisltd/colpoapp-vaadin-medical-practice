@@ -94,7 +94,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     Div divFormTitle = new Div();
     //VerticalLayout imagesLayout = new VerticalLayout();
     Button save = new Button("Save (F9)");
-    Button close = new Button("Cancel");
 
     Button btnPrintPdfReport = new Button("Print PDF report");
 
@@ -482,8 +481,10 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         var dr = (sharedData.getSelectedDoctor()!=null)?
                 "Dr. %s".formatted(sharedData.getSelectedDoctor().getVardsUzvardsDakteris()):
                 "";
-        var pt = (sharedData.getSelectedPatient()!=null)?
-                "patient: %s".formatted(sharedData.getSelectedPatient().getVardsUzvardsPacients()):
+        var pt = (sharedData.getSelectedPatient() != null) ?
+                "patient: %s (%d)".formatted(
+                        sharedData.getSelectedPatient().getVardsUzvardsPacients()
+                        , getAge(sharedData.getSelectedPatient().getDzimsanasGads())) :
                 "";
         return new Div(new H2(dr), new H2(pt));
     }
@@ -494,17 +495,10 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
     private Component createButtonsLayout() {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        //delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-
-        //save.addClickShortcut(Key.ENTER);
-        close.addClickShortcut(Key.ESCAPE);
 
         save.addClickListener(event -> validateAndSave());
         save.addClickShortcut(Key.KEY_S, KeyModifier.CONTROL);
         save.addClickShortcut(Key.F9);
-
-        close.addClickListener(event -> fireEvent(new CloseEvent(this)));
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
@@ -519,8 +513,11 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             this.pdfReport.generate();
             showPdfViewerDialog(sharedData);
     });
+        Button resetButton = new Button("Next visit [ESC]");
+        resetButton.addClickShortcut(Key.ESCAPE);
+        resetButton.addClickListener(event -> UI.getCurrent().getPage().reload());
 
-        return new HorizontalLayout( addPatientSelectionButton(),save, btnPrintPdfReport,close);
+        return new HorizontalLayout( addPatientSelectionButton(),save, btnPrintPdfReport,resetButton);
     }
 
 
@@ -543,6 +540,10 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         }
     }
 
+    Integer getAge(int birthYear){
+        int currentYear = Year.now().getValue();
+        return currentYear - birthYear;
+    }
     @Getter
     public static abstract class PatientVisitFormEvent extends ComponentEvent<PatientVisitView> {
         private final KolposkopijaIzmeklejumsEntity entity;

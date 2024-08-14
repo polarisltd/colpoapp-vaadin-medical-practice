@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -90,11 +91,8 @@ public class PdfVisitReport
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(sharedData.getPdfReportFilename()));
             document.open();
 
-
-
-            PdfPTable table01 = createTable01();
-            document.add(table01);
-
+            PdfPTable table01top = createTable01top();
+            document.add(table01top);
 
             // Create root table with 2 columns
             PdfPTable rootTable = new PdfPTable(2);
@@ -104,6 +102,9 @@ public class PdfVisitReport
             // First column: Add existing tables
             PdfPTable leftColumnTable = new PdfPTable(1);
             leftColumnTable.setWidthPercentage(100f);
+
+            PdfPTable table01 = createTable01();
+            leftColumnTable.addCell(createTableCell(table01));
 
             PdfPTable table02 = createTable02();
             leftColumnTable.addCell(createTableCell(table02));
@@ -120,17 +121,9 @@ public class PdfVisitReport
             rightColumnTable.setWidthPercentage(100f);
             visitImages(rightColumnTable);
 
-            // Add right column table to root table
             rootTable.addCell(createTableCell(rightColumnTable));
 
             document.add(rootTable);
-
-
-//            PdfPTable table04 = new PdfPTable(1);
-//            table04.setWidthPercentage(90f);
-//            table03.setSpacingAfter(10f);
-//            visitImages(entity, table04);
-//            document.add(table04);
 
             document.close();
             writer.close();
@@ -218,14 +211,20 @@ public class PdfVisitReport
                     LOGGER.info("Adding image to PDF: " + image.getImagePath());
                     Image image1 = Image.getInstance(image.getImagePath());
                     image1.setAlignment(Element.ALIGN_CENTER);
-                    image1.scaleAbsoluteWidth(400);
-                    imageTable.addCell(image1);
+                    //image1.scaleAbsoluteWidth(400);
+                    image1.scaleToFit(200, 200);
+                    PdfPCell imageCell = new PdfPCell(image1);
+                    imageCell.setBorder(Rectangle.NO_BORDER);
+                    imageCell.setPaddingTop(0.3f);
+                    imageCell.setPaddingBottom(0.3f);
+                    imageCell.setPaddingLeft(3f);
+                    imageCell.setPaddingRight(3f);
+                    imageTable.addCell(imageCell);
                 } catch (Exception e) {
                     LOGGER.error("Error while loading image", e);
                 }
             });
-        //imageTable.setSpacingAfter(10f);
-        //imageTable.addCell(getTextCell(""));
+
 
         }
 
@@ -394,38 +393,10 @@ public class PdfVisitReport
 
     PdfPTable createTable01() throws DocumentException{
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        var formattedDate = Optional.ofNullable(entity.getIzmeklejumaDatums())
-                .map(date -> date.atZone(ZoneId.systemDefault()).format(formatter))
-                .orElse("N/A");
-
         PdfPTable table01 = new PdfPTable(3);
         table01.setWidthPercentage(100f);
         table01.setWidths(new float[]{0.25f, 0.25f, 0.5f});
         table01.getDefaultCell().setBorder(Rectangle.NO_BORDER);
-        //
-        table01.addCell(
-                getTextCellDefaultBoldNoBorder("Vārds Uzvārds ")
-        );
-        table01.addCell(
-                getTextCellDefaultBoldNoBorder(entity.getPacients().getVardsUzvardsPacients())
-        );
-        table01.addCell(
-                getTextCellDefaultBoldRightAlignNoBorder("DATUMS " + formattedDate)
-        );
-        //
-        table01.addCell(
-                getTextCellDefaultNoBorder("Personas Kods ")
-        );
-
-        {
-            var cell = getTextCellDefaultNoBorder(entity.getPacients().getPersonasKods());
-            cell.setColspan(2);
-            table01.addCell(
-                    cell
-            );
-        }
-
         //
         table01.addCell(
                 getTextCellDefaultNoBorder("KOLPOSKOPIJA"));
@@ -515,7 +486,61 @@ public class PdfVisitReport
         return table01;
     }
 
+    PdfPTable createTable01top() throws DocumentException{
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        var formattedDate = Optional.ofNullable(entity.getIzmeklejumaDatums())
+                .map(date -> date.atZone(ZoneId.systemDefault()).format(formatter))
+                .orElse("N/A");
+
+        PdfPTable table01 = new PdfPTable(3);
+        table01.setWidthPercentage(100f);
+        table01.setWidths(new float[]{0.25f, 0.25f, 0.5f});
+        table01.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+        //
+        table01.addCell(
+                getTextCellDefaultBoldNoBorder("Vārds Uzvārds ")
+        );
+        table01.addCell(
+                getTextCellDefaultBoldNoBorder(entity.getPacients().getVardsUzvardsPacients())
+        );
+        table01.addCell(
+                getTextCellDefaultBoldRightAlignNoBorder("DATUMS " + formattedDate)
+        );
+        //
+        table01.addCell(
+                getTextCellDefaultNoBorder("Personas Kods ")
+        );
+
+        {
+            var cell = getTextCellDefaultNoBorder(entity.getPacients().getPersonasKods());
+            cell.setColspan(2);
+            table01.addCell(
+                    cell
+            );
+        }
+
+        //
+        table01.addCell(
+                getTextCellDefaultNoBorder("Vecums ")
+        );
+        {
+            var cell = getTextCellDefaultNoBorder(getAge(entity.getPacients().getDzimsanasGads()).toString());
+            cell.setColspan(2);
+            table01.addCell(
+                    cell
+            );
+        }
+        //
+        table01.setSpacingAfter(20f);
+        return table01;
+    }
+
+
+    Integer getAge(int birthYear){
+        int currentYear = Year.now().getValue();
+        return currentYear - birthYear;
+    }
 
     private PdfPCell createTableCell(PdfPTable table) {
         PdfPCell cell = new PdfPCell(table);
