@@ -24,7 +24,6 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
-import com.vaadin.flow.data.converter.Converter;
 import com.vaadin.flow.data.converter.StringToIntegerConverter;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -41,8 +40,10 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serial;
 import java.nio.file.*;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +55,9 @@ import static com.example.application.views.PdfViewerView.showPdfViewerDialog;
 @PermitAll
 @Route(value = "addVisit", layout = MainLayout.class)
 @PageTitle("Visit | Colposcope app")
-public class PatientVisitView extends FormLayout implements BeforeEnterObserver { //implements HasUrlParameter<String>
+public class PatientVisitView extends FormLayout implements BeforeEnterObserver {
+    @Serial
+    private static final long serialVersionUID = 4841880650440852158L;
     public static final String SAMPLE_IMAGE = "colposcopy-logo.jpg";
     TextField izmeklejumaNr = new TextField("Izmeklējuma Nr");
     DatePicker izmeklejumaDatums = new DatePicker("Izmeklējuma Datums");
@@ -78,17 +81,17 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextArea sledziens = new TextArea("Slēdziens");
     TextField nakosaKolposkopijasKontrole = new TextField("Nākošā Kolposkopijas Kontrole");
 
-    private Checkbox m1 = new Checkbox(StaticTexts.M1);
-    private Checkbox m2 = new Checkbox(StaticTexts.M2);
+    private final Checkbox m1 = new Checkbox(StaticTexts.M1);
+    private final Checkbox m2 = new Checkbox(StaticTexts.M2);
 
     Div divManipulacijasVizLaika = new Div(new Div(StaticTexts.M_LABEL), m1, m2);
 
-    private Checkbox r1 = new Checkbox(StaticTexts.R1);
-    private Checkbox r2 = new Checkbox(StaticTexts.R2);
-    private Checkbox r3 = new Checkbox(StaticTexts.R3);
-    private Checkbox r4 = new Checkbox(StaticTexts.R4);
-    private Checkbox r5 = new Checkbox(StaticTexts.R5);
-    private Checkbox r6 = new Checkbox(StaticTexts.R6);
+    private final Checkbox r1 = new Checkbox(StaticTexts.R1);
+    private final Checkbox r2 = new Checkbox(StaticTexts.R2);
+    private final Checkbox r3 = new Checkbox(StaticTexts.R3);
+    private final Checkbox r4 = new Checkbox(StaticTexts.R4);
+    private final Checkbox r5 = new Checkbox(StaticTexts.R5);
+    private final Checkbox r6 = new Checkbox(StaticTexts.R6);
     Div divRezultati = new Div(new Div(StaticTexts.R_LABEL), r1, r2, r3, r4, r5, r6);
 
     Div divFormTitle = new Div();
@@ -140,19 +143,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         addClassName("patient-visit-view");
 
         binder.forField(izmeklejumaDatums)
-                .withConverter(
-                        new Converter<LocalDate, Instant>() {
-                            public Result<Instant> convertToModel(LocalDate fieldValue, ValueContext context) {
-
-                                return Result.ok((fieldValue == null ? LocalDate.now() : fieldValue).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                            }
-
-                            public LocalDate convertToPresentation(Instant modelValue, ValueContext context) {
-                                return modelValue.atZone(ZoneId.systemDefault()).toLocalDate();
-                            }
-                        })
-                .bind(KolposkopijaIzmeklejumsEntity::getIzmeklejumaDatums, KolposkopijaIzmeklejumsEntity::setIzmeklejumaDatums);
-
+                .bind(
+                        KolposkopijaIzmeklejumsEntity::getIzmeklejumaDatums,
+                        KolposkopijaIzmeklejumsEntity::setIzmeklejumaDatums);
         binder.forField(trnsformacijasZonasTips)
                 .withConverter(new StringToIntegerConverter("Must be a number") {
                     @Override
@@ -213,8 +206,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         );
         KolposkopijaIzmeklejumsEntity visit = new KolposkopijaIzmeklejumsEntity();
         LocalDate currentDate = LocalDate.now();
-        Instant currentInstant = currentDate.atStartOfDay().toInstant(ZoneOffset.UTC);
-        visit.setIzmeklejumaDatums(currentInstant);
+        visit.setIzmeklejumaDatums(currentDate);
         this.setVisit(visit);
         this.addSaveListener(this::saveVisit); // <1>
         this.addCloseListener(e -> closeEditor());
@@ -527,9 +519,8 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         return "%s/kolposkopija-%s_%s.pdf".formatted(
                 filePathPrefix,
-                formatter.format(ZonedDateTime.ofInstant(
-                        entity.getIzmeklejumaDatums(),
-                        ZoneId.systemDefault())),
+                formatter.format(
+                        entity.getIzmeklejumaDatums()),
                 entity.getPacients().getVardsUzvardsPacients().replace(" ", "-")
         );
     }
@@ -592,21 +583,21 @@ public void beforeEnter(BeforeEnterEvent event) {
                         WatchKey key = watchService.take();
                         for (WatchEvent<?> event : key.pollEvents()) {
                             if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                                Path newPath = ((WatchEvent<Path>)event).context();
-                                String newFilePath = Paths.get(directoryPath, newPath.toString()).toString();
-                                System.out.println("New file created: " + newFilePath);
-                                if(this.currentVisitId != null) {
-                                    imageRepository.save(ImageEntity.builder()
-                                            .visitId(this.currentVisitId.intValue())
-                                            .imagePath(newFilePath)
-                                            .imageIncluded(true)
-                                            .build());
-                                }else{
-                                    LOGGER.error("Cant save image. Save Visit first");
+                                if (event.context() instanceof Path newPath) {
+                                    String newFilePath = Paths.get(directoryPath, newPath.toString()).toString();
+                                    LOGGER.info("WatcherService: New file added " + newFilePath);
+                                    if (this.currentVisitId != null) {
+                                        imageRepository.save(ImageEntity.builder()
+                                                .visitId(this.currentVisitId.intValue())
+                                                .imagePath(newFilePath)
+                                                .imageIncluded(true)
+                                                .build());
+                                    } else {
+                                        LOGGER.error("WatcherService: Cant save image. Save Visit first");
+                                    }
                                 }
-                                }
+                            }
                         }
-                        key.reset();
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

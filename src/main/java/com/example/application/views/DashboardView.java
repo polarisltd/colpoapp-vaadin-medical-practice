@@ -42,12 +42,11 @@ public class DashboardView extends VerticalLayout {
     }
 
     private Component getVisitStats() {
-        Instant startDate = LocalDate.now().minusDays(45).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        LocalDate startDate = LocalDate.now().minusDays(45);
         List<KolposkopijaIzmeklejumsEntity> visits = service.findAllByVisitDateAfter(startDate);
-//
-         Map<LocalDate, Long> visitCounts = visits.stream()
-                 .collect(Collectors.groupingBy(visit -> visit.getIzmeklejumaDatums().atZone(ZoneId.systemDefault())
-                         .toLocalDate(), Collectors.counting()));
+
+        Map<LocalDate, Long> visitCounts = visits.stream()
+                .collect(Collectors.groupingBy(KolposkopijaIzmeklejumsEntity::getIzmeklejumaDatums, Collectors.counting()));
 
         Div container = new Div();
         container.addClassName("visit-stats-container");
@@ -56,7 +55,7 @@ public class DashboardView extends VerticalLayout {
             Div card = new Div();
             card.addClassName("visit-card");
 
-            var countSpan = new H2(count.toString() );
+            var countSpan = new H2(count.toString());
             countSpan.getStyle().set("font-weight", "bold");
 
             Span dateSpan = new Span(date.format(DateTimeFormatter.ofPattern("dd/MM")));
@@ -67,5 +66,4 @@ public class DashboardView extends VerticalLayout {
 
         return container;
     }
-
 }

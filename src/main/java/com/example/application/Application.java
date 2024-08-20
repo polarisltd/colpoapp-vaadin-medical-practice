@@ -16,8 +16,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @Theme(value = "flowcrmtutorial")
 @PWA(
-        name = "Colposcope app",
-        shortName = "CRM",
+        name = "Colposcope Protocol app",
+        shortName = "ColpoApp",
         offlinePath="offline.html",
         offlineResources = { "images/offline.png" }
 )

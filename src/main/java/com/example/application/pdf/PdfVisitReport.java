@@ -490,7 +490,7 @@ public class PdfVisitReport
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         var formattedDate = Optional.ofNullable(entity.getIzmeklejumaDatums())
-                .map(date -> date.atZone(ZoneId.systemDefault()).format(formatter))
+                .map(date -> date.format(formatter))
                 .orElse("N/A");
 
         PdfPTable table01 = new PdfPTable(3);

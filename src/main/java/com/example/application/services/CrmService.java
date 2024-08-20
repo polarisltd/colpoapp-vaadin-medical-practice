@@ -4,7 +4,6 @@ import com.example.application.data.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -55,7 +54,7 @@ public class CrmService {
         }
     }
 
-    public List<KolposkopijaIzmeklejumsEntity> findAllByVisitDateAfter(Instant startDate) {
+    public List<KolposkopijaIzmeklejumsEntity> findAllByVisitDateAfter(LocalDate startDate) {
         return kolposkopijaIzmeklejumsRepository.findAllByVisitDateAfter(startDate);
     }
 

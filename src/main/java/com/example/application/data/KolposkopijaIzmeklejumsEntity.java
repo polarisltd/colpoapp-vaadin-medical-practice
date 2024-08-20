@@ -1,16 +1,14 @@
 package com.example.application.data;
 
-import com.example.application.data.enumeration.ViziteAtkartojumsEnum;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.*;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A KolposkopijaIzmeklejumsEntity.
@@ -23,7 +21,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-//@org.springframework.data.elasticsearch.annotations.Document(indexName = "kolposkopijaizmeklejums")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class KolposkopijaIzmeklejumsEntity implements Serializable {
 
@@ -42,7 +39,7 @@ public class KolposkopijaIzmeklejumsEntity implements Serializable {
 
     //@NotNull
     @Column(name = "izmeklejuma_datums", nullable = true)
-    private Instant izmeklejumaDatums;
+    private LocalDate izmeklejumaDatums;
 
     @Column(name = "vizites_atkartojums")
     private Boolean vizitesAtkartojums;

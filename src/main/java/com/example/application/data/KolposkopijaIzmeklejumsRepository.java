@@ -19,7 +19,7 @@ public interface KolposkopijaIzmeklejumsRepository extends JpaRepository<Kolposk
     List<KolposkopijaIzmeklejumsEntity> search(@Param("searchTerm") String searchTerm);
 
     @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k WHERE k.izmeklejumaDatums >= :startDate")
-    List<KolposkopijaIzmeklejumsEntity> findAllByVisitDateAfter(Instant startDate);
+    List<KolposkopijaIzmeklejumsEntity> findAllByVisitDateAfter(LocalDate startDate);
 
 
 }
