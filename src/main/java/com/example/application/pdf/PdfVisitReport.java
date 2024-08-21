@@ -91,8 +91,17 @@ public class PdfVisitReport
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(sharedData.getPdfReportFilename()));
             document.open();
 
+            PdfPTable rootTableTop = new PdfPTable(1);
+            rootTableTop.setWidthPercentage(100f);
+
             PdfPTable table01top = createTable01top();
-            document.add(table01top);
+            PdfPCell table01topCell = new PdfPCell(table01top);
+            table01topCell.setPaddingTop(50f); // Add padding to the top side
+            table01topCell.setPaddingLeft(20f); // Add padding to the left side
+            table01topCell.setPaddingRight(20f); // Add padding to the right side
+            table01topCell.setBorder(Rectangle.NO_BORDER); // Optional: Remove border if not needed
+            rootTableTop.addCell(table01topCell);
+            document.add(rootTableTop);
 
             // Create root table with 2 columns
             PdfPTable rootTable = new PdfPTable(2);
@@ -112,16 +121,20 @@ public class PdfVisitReport
             PdfPTable table03 = createTable03();
             leftColumnTable.addCell(createTableCell(table03));
 
-            // Add left column table to root table
-            rootTable.addCell(createTableCell(leftColumnTable));
-            //document.add(table02);
+            // Add left column table to root table with padding
+            PdfPCell leftColumnCell = createTableCell(leftColumnTable);
+            leftColumnCell.setPaddingLeft(20f); // Add padding to the left side
+            rootTable.addCell(leftColumnCell);
 
 // Second column: Add images
             PdfPTable rightColumnTable = new PdfPTable(1);
             rightColumnTable.setWidthPercentage(100f);
             visitImages(rightColumnTable);
 
-            rootTable.addCell(createTableCell(rightColumnTable));
+            // Add right column table to root table with padding
+            PdfPCell rightColumnCell = createTableCell(rightColumnTable);
+            rightColumnCell.setPaddingRight(20f); // Add padding to the right side
+            rootTable.addCell(rightColumnCell);
 
             document.add(rootTable);
 

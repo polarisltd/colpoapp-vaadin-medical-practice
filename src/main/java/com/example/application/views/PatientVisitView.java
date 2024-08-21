@@ -570,45 +570,44 @@ public void beforeEnter(BeforeEnterEvent event) {
     drId = event.getRouteParameters().getInteger(PATIENT_ID_ROUTE_PARAM).orElse(null);
 }
 
-    private void watchDirectory(String directoryPath) {
-        LOGGER.info("Watching directory: %s".formatted(directoryPath));
-        try {
-            WatchService watchService = FileSystems.getDefault().newWatchService();
-            Path path = Paths.get(directoryPath);
-            path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+private void watchDirectory(String directoryPath) {
+    LOGGER.info("Watching directory: %s".formatted(directoryPath));
+    try {
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        Path path = Paths.get(directoryPath);
+        path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
 
-            Thread thread = new Thread(() -> {
-                try {
-                    while (true) {
-                        WatchKey key = watchService.take();
-                        for (WatchEvent<?> event : key.pollEvents()) {
-                            if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                                if (event.context() instanceof Path newPath) {
-                                    String newFilePath = Paths.get(directoryPath, newPath.toString()).toString();
-                                    LOGGER.info("WatcherService: New file added " + newFilePath);
-                                    if (this.currentVisitId != null) {
-                                        imageRepository.save(ImageEntity.builder()
-                                                .visitId(this.currentVisitId.intValue())
-                                                .imagePath(newFilePath)
-                                                .imageIncluded(true)
-                                                .build());
-                                    } else {
-                                        LOGGER.error("WatcherService: Cant save image. Save Visit first");
-                                    }
-                                }
+        Thread thread = new Thread(() -> {
+            try {
+                while (true) {
+                    WatchKey key = watchService.take();
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                            Path newPath = ((WatchEvent<Path>) event).context();
+                            String newFilePath = Paths.get(directoryPath, newPath.toString()).toString();
+                            LOGGER.info("WatcherService: New file created: " + newFilePath);
+                            if (this.currentVisitId != null) {
+                                imageRepository.save(ImageEntity.builder()
+                                        .visitId(this.currentVisitId.intValue())
+                                        .imagePath(newFilePath)
+                                        .imageIncluded(true)
+                                        .build());
+                            } else {
+                                LOGGER.error("WatcherService: Cant save image. Save Visit first");
                             }
                         }
                     }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    key.reset();
                 }
-            });
-            thread.setDaemon(true);
-            thread.start();
-        } catch (IOException e) {
-            LOGGER.error("watcher service failure",e);
-        }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    } catch (IOException e) {
+        LOGGER.error("WatcherService: watcher service failure", e);
     }
-
+}
 
 }
