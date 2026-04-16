@@ -398,9 +398,11 @@ public class PdfVisitReport
         table03.addCell(
                 getTextCellDefaultNoBorder("Slēdziens")
         );
-        table03.addCell(
-                getTextCellDefaultNoBorder(entity.getSledziens())
-        );
+        {
+            var cell = getTextCellDefaultNoBorder(entity.getSledziens());
+            cell.setMinimumHeight(60f);
+            table03.addCell(cell);
+        }
         return table03;
     }
 
@@ -491,6 +493,7 @@ public class PdfVisitReport
         {
             var cell = getTextCellDefaultNoBorder(entity.getAnamneze());
             cell.setColspan(2);
+            cell.setMinimumHeight(60f);
             table01.addCell(cell);
         }
         //

@@ -65,6 +65,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextField skriningaNr = new TextField("Skrīninga Nr");
     Checkbox kolposkopijaAdekvata  = new Checkbox("Kolposkopija adekvāta?");
     TextArea anamneze = new TextArea("Anamnēze");
+    {
+        anamneze.setMinHeight("130px");
+    }
     TextField iepriekshVeiktaTerapija = new TextField("Iepriekš Veikta Terapija");
     Checkbox alergijas = new Checkbox("Alerģijas?");
     TextField alergijasComment = new TextField("Alerģiju uzskaitījums");
@@ -79,6 +82,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     TextField  hroniskasSaslimsanasMedikamentuLietosana = new TextField("hroniskas saslimšanas, medikamentu_lietošana");
     TextField trnsformacijasZonasTips = new TextField("Trnsformacijas Zonas Tips (0=unknown, 1-3)");
     TextArea sledziens = new TextArea("Slēdziens");
+    {
+        sledziens.setMinHeight("130px");
+    }
     TextField nakosaKolposkopijasKontrole = new TextField("Nākošā Kolposkopijas Kontrole");
 
     private final Checkbox m1 = new Checkbox(StaticTexts.M1);

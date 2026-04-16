@@ -48,7 +48,7 @@ public class KolposkopijaIzmeklejumsEntity implements Serializable {
     private String skriningaNr;
 
     //@Lob
-    @Column(name = "anamneze")
+    @Column(name = "anamneze", length = 4096)
     private String anamneze;
 
     //@Lob
@@ -144,7 +144,7 @@ public class KolposkopijaIzmeklejumsEntity implements Serializable {
     @Column(name = "r_6", nullable = true)
     private Boolean r6;
 
-    @Column(name = "sledziens")
+    @Column(name = "sledziens", length = 4096)
     private String sledziens;
 
     @Column(name = "nakosa_kolposkopijas_kontrole")

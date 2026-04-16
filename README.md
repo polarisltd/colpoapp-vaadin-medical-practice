@@ -41,7 +41,9 @@ docker-compose up -d
 run locally production mode
 ```
 mvn clean package -DskipTests -Pproduction
-java  -Dspring.profiles.active=production -jar target/colpoapp-vaadin-1.0-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError
+#java  -Dspring.profiles.active=production -jar target/colpoapp-vaadin-1.0-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError
+java  -Dspring.profiles.active=production -jar target/colpoapp-vaadin-1.2-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError
+
 # will listen on 8084
 ```
 
@@ -69,6 +71,13 @@ postgres in production
 CREATE ROLE colpoowner WITH LOGIN PASSWORD 'prakse';
 CREATE DATABASE colpoapp OWNER colpoowner;
 GRANT ALL PRIVILEGES ON DATABASE colpoapp TO colpoowner;
+
+## Database updates
+
+```sql
+ALTER TABLE kolposkopija_izmeklejums ALTER COLUMN anamneze TYPE VARCHAR(4096);
+ALTER TABLE kolposkopija_izmeklejums ALTER COLUMN sledziens TYPE VARCHAR(4096);
+```
 
 # OpenVPN for production
 
