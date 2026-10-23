@@ -38,11 +38,11 @@ docker run -p 8080:8080 colpoapp-vaadin-4:latest
 docker-compose up -d
 ```
 
-run locally production mode
+## run locally production mode
 ```
 mvn clean package -DskipTests -Pproduction
 #java  -Dspring.profiles.active=production -jar target/colpoapp-vaadin-1.0-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError
-java  -Dspring.profiles.active=production -jar target/colpoapp-vaadin-1.2-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError
+ java "-Dspring.profiles.active=production2" -jar target\colpoapp-vaadin-1.4-SNAPSHOT.jar -d64 -Xmx8g -XX:+CrashOnOutOfMemoryError                                                      
 
 # will listen on 8084
 ```

@@ -58,6 +58,14 @@ public class CrmService {
         return kolposkopijaIzmeklejumsRepository.findAllByVisitDateAfter(startDate);
     }
 
+    public List<KolposkopijaIzmeklejumsEntity> findVisitsByDate(LocalDate date) {
+        return kolposkopijaIzmeklejumsRepository.findAllByIzmeklejumaDatums(date);
+    }
+
+    public KolposkopijaIzmeklejumsEntity findVisitById(Long id) {
+        return kolposkopijaIzmeklejumsRepository.findById(id).orElse(null);
+    }
+
     public List<DakterisEntity> findAllDrs(String stringFilter) {
         if (stringFilter == null || stringFilter.isEmpty()) {
             return drRepository.findAll();

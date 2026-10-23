@@ -8,11 +8,13 @@ import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.ChartType;
 import com.vaadin.flow.component.charts.model.DataSeries;
 import com.vaadin.flow.component.charts.model.DataSeriesItem;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
@@ -54,6 +56,11 @@ public class DashboardView extends VerticalLayout {
         visitCounts.forEach((date, count) -> {
             Div card = new Div();
             card.addClassName("visit-card");
+            card.getStyle().set("cursor", "pointer");
+            card.addClickListener(e -> {
+                QueryParameters params = QueryParameters.simple(Map.of("date", date.toString()));
+                getUI().ifPresent(ui -> ui.navigate("visitBrowser", params));
+            });
 
             var countSpan = new H2(count.toString());
             countSpan.getStyle().set("font-weight", "bold");

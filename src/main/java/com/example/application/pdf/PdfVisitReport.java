@@ -235,6 +235,12 @@ public class PdfVisitReport
                     imageTable.addCell(imageCell);
                 } catch (Exception e) {
                     LOGGER.error("Error while loading image", e);
+                    PdfPCell textCell = getTextCell(image.getImagePath(), Element.ALIGN_LEFT, Rectangle.NO_BORDER, new Font(baseFont, 6));
+                    textCell.setPaddingTop(0.3f);
+                    textCell.setPaddingBottom(0.3f);
+                    textCell.setPaddingLeft(3f);
+                    textCell.setPaddingRight(3f);
+                    imageTable.addCell(textCell);
                 }
             });
 

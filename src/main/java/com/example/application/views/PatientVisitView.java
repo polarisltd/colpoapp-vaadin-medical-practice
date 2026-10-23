@@ -15,6 +15,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -99,6 +100,16 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     private final Checkbox r5 = new Checkbox(StaticTexts.R5);
     private final Checkbox r6 = new Checkbox(StaticTexts.R6);
     Div divRezultati = new Div(new Div(StaticTexts.R_LABEL), r1, r2, r3, r4, r5, r6);
+    {
+        m1.addValueChangeListener(e -> validateAndSave());
+        m2.addValueChangeListener(e -> validateAndSave());
+        r1.addValueChangeListener(e -> validateAndSave());
+        r2.addValueChangeListener(e -> validateAndSave());
+        r3.addValueChangeListener(e -> validateAndSave());
+        r4.addValueChangeListener(e -> validateAndSave());
+        r5.addValueChangeListener(e -> validateAndSave());
+        r6.addValueChangeListener(e -> validateAndSave());
+    }
 
     Div divFormTitle = new Div();
     //VerticalLayout imagesLayout = new VerticalLayout();
@@ -175,8 +186,6 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
 
         binder.bindInstanceFields(this);
 
-        sampleImage();  // add sample to imagesLayout
-
         divFormTitle.add(getFormTitle());
 
 
@@ -211,18 +220,47 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 addRefreshButton()
         );
         KolposkopijaIzmeklejumsEntity visit = new KolposkopijaIzmeklejumsEntity();
+        if (sharedData.getSelectedDoctor() != null) {
+            visit.setDakteris(sharedData.getSelectedDoctor());
+        }
+        if (sharedData.getSelectedPatient() != null) {
+            visit.setPacients(sharedData.getSelectedPatient());
+        }
         LocalDate currentDate = LocalDate.now();
         visit.setIzmeklejumaDatums(currentDate);
+
+        if (sharedData.getSelectedVisitId() != null) {
+            KolposkopijaIzmeklejumsEntity existingVisit = service.findVisitById(sharedData.getSelectedVisitId());
+            if (existingVisit != null) {
+                visit = existingVisit;
+                if (visit.getDakteris() != null) {
+                    sharedData.setSelectedDoctor(visit.getDakteris());
+                }
+                if (visit.getPacients() != null) {
+                    sharedData.setSelectedPatient(visit.getPacients());
+                }
+            }
+        }
+
         this.setVisit(visit);
         this.addSaveListener(this::saveVisit); // <1>
         this.addCloseListener(e -> closeEditor());
+
+        binder.addValueChangeListener(e -> {
+            if (binder.getBean() != null) {
+                validateAndSave();
+            }
+        });
+
         UI.getCurrent().setPollInterval(30000); // Polling interval is set in milliseconds
 
+        refreshImagesLayout();
         UI.getCurrent().addPollListener(e -> refreshImagesLayout());
     }
 
     private void resetSharedData() {
-        sharedData.setSelectedPatient(null);
+        // sharedData.setSelectedPatient(null);
+        // sharedData.setSelectedVisitId(null);
     }
     void calcPoints(){
         pointsDiv.removeAll();
@@ -334,6 +372,7 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 else if(_checkboxes[2].getValue()) gr.value=2;
                 else gr.value = 0;
                 calcPoints();
+                validateAndSave();
             });
 
         }
@@ -396,7 +435,10 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             });
             Image image = new Image(resource, "sample image");
             image.setWidth("400px");  // Set the width of the image to 400 pixels
-            this.imagesLayout.add(image);
+            Span pathSpan = new Span(imagePath);
+            pathSpan.getStyle().set("font-size", "8px");
+            pathSpan.getStyle().set("color", "gray");
+            this.imagesLayout.add(image, pathSpan);
         });
         } catch (Exception e) {
             LOGGER.error("error reading sample image",e);
@@ -416,6 +458,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
             });
             Image image = new Image(resource, "colposcopy image");
             image.setWidth("400px");  // Set the width of the image to 400 pixels
+            Span pathSpan = new Span(entity.getImagePath());
+            pathSpan.getStyle().set("font-size", "8px");
+            pathSpan.getStyle().set("color", "gray");
             Checkbox imageIncluded = new Checkbox("Iekļaut");
             imageIncluded.setValue(entity.getImageIncluded()!=null?entity.getImageIncluded():false);
             imageIncluded.addValueChangeListener(event -> {
@@ -423,33 +468,40 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
                 entity.setImageIncluded(isIncluded);
                 imageRepository.save(entity);
             });
-            this.imagesLayout.add(imageIncluded, image);
+            this.imagesLayout.add(imageIncluded, image, pathSpan);
     }
 
 
     private void saveVisit(SaveEvent event) {
         var entity = event.getEntity();
-        items.forEach(item -> {
-            switch (item.id) {
-                case "P1" -> entity.setP1(item.value);
-                case "P2" -> entity.setP2(item.value);
-                case "P3" -> entity.setP3(item.value);
-                case "P4" -> entity.setP4(item.value);
-                case "P5" -> entity.setP5(item.value);
-            }
-            LOGGER.info("Item: %s value: %s".formatted(item.label, item.value));
-        });
+        if (items != null) {
+            items.forEach(item -> {
+                switch (item.id) {
+                    case "P1" -> entity.setP1(item.value);
+                    case "P2" -> entity.setP2(item.value);
+                    case "P3" -> entity.setP3(item.value);
+                    case "P4" -> entity.setP4(item.value);
+                    case "P5" -> entity.setP5(item.value);
+                }
+                LOGGER.info("Item: %s value: %s".formatted(item.label, item.value));
+            });
+        }
+
+        entity.setM1(m1.getValue());
+        entity.setM2(m2.getValue());
+        entity.setR1(r1.getValue());
+        entity.setR2(r2.getValue());
+        entity.setR3(r3.getValue());
+        entity.setR4(r4.getValue());
+        entity.setR5(r5.getValue());
+        entity.setR6(r6.getValue());
 
         try {
             saveVisit(entity);
-            Notification.show("Visit saved", 3000, Notification.Position.MIDDLE);
-            sharedData.setSelectedVisitId(entity.getId());
             //closeEditor();
         }catch (Exception e) {
             Notification.show("error: %s".formatted(e.getMessage()), 3000, Notification.Position.MIDDLE);
-
         }
-
     }
 
     private void saveVisit(KolposkopijaIzmeklejumsEntity entity){
@@ -457,7 +509,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         entity.setPacients(sharedData.getSelectedPatient());
         KolposkopijaIzmeklejumsEntity savedEntity = service.saveVisit(entity);
         this.currentVisitId = savedEntity.getId();
+        sharedData.setSelectedVisitId(this.currentVisitId);
         LOGGER.info("Visit ID: %s saved!".formatted(this.currentVisitId));
+        // Notification.show("Visit saved", 3000, Notification.Position.MIDDLE);
     }
 
 
@@ -488,7 +542,12 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     }
 
     public void setVisit(KolposkopijaIzmeklejumsEntity entity) {
+        this.currentVisitId = (entity != null) ? entity.getId() : null;
         binder.setBean(entity);
+        if (entity != null && entity.getPacients() != null) {
+            divFormTitle.removeAll();
+            divFormTitle.add(getFormTitle());
+        }
     }
 
     private Component createButtonsLayout() {
@@ -513,7 +572,11 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
     });
         Button resetButton = new Button("Next visit [ESC]");
         resetButton.addClickShortcut(Key.ESCAPE);
-        resetButton.addClickListener(event -> UI.getCurrent().getPage().reload());
+        resetButton.addClickListener(event -> {
+            sharedData.setSelectedVisitId(null);
+            sharedData.setSelectedPatient(null);
+            UI.getCurrent().getPage().reload();
+        });
 
         return new HorizontalLayout( addPatientSelectionButton(),save, btnPrintPdfReport,resetButton);
     }
@@ -570,11 +633,9 @@ public class PatientVisitView extends FormLayout implements BeforeEnterObserver 
         addListener(CloseEvent.class, listener);
     }
 
-@Override
-public void beforeEnter(BeforeEnterEvent event) {
-    ptId = event.getRouteParameters().getInteger(DOCTOR_ID_ROUTE_PARAM).orElse(null);
-    drId = event.getRouteParameters().getInteger(PATIENT_ID_ROUTE_PARAM).orElse(null);
-}
+    public void beforeEnter(BeforeEnterEvent event) {
+        // Handle potential query parameters if needed, but for now we rely on SharedData
+    }
 
 private void watchDirectory(String directoryPath) {
     LOGGER.info("Watching directory: %s".formatted(directoryPath));
