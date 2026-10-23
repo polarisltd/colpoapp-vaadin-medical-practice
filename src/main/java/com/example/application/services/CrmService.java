@@ -48,7 +48,7 @@ public class CrmService {
     @Transactional
     public List<KolposkopijaIzmeklejumsEntity> findAllVisits(String stringFilter) {
         if (stringFilter == null || stringFilter.isEmpty()) {
-            return kolposkopijaIzmeklejumsRepository.findAll();
+            return kolposkopijaIzmeklejumsRepository.findAllWithFetch();
         } else {
             return kolposkopijaIzmeklejumsRepository.search(stringFilter);
         }
@@ -63,7 +63,7 @@ public class CrmService {
     }
 
     public KolposkopijaIzmeklejumsEntity findVisitById(Long id) {
-        return kolposkopijaIzmeklejumsRepository.findById(id).orElse(null);
+        return kolposkopijaIzmeklejumsRepository.findByIdWithFetch(id).orElse(null);
     }
 
     public List<DakterisEntity> findAllDrs(String stringFilter) {

@@ -7,20 +7,28 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface KolposkopijaIzmeklejumsRepository extends JpaRepository<KolposkopijaIzmeklejumsEntity, Long> {
 
-    @Query(value = "select c.* from kolposkopija_izmeklejums c " +
-            "join pacients p on c.pacients_id = p.id " +
-            "where lower(p.vards_uzvards_pacients) like lower(concat('%', :searchTerm, '%')) " +
-            "or lower(p.personas_kods) like lower(concat('%', :searchTerm, '%')) " +
-            "or to_char(c.izmeklejuma_datums at time zone 'UTC', 'YYYYMMDD') like lower(concat('%', :searchTerm, '%'))",
-            nativeQuery = true)
+    @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k " +
+            "JOIN FETCH k.pacients p " +
+            "JOIN FETCH k.dakteris d " +
+            "WHERE lower(p.vardsUzvardsPacients) like lower(concat('%', :searchTerm, '%')) " +
+            "or lower(p.personasKods) like lower(concat('%', :searchTerm, '%'))")
     List<KolposkopijaIzmeklejumsEntity> search(@Param("searchTerm") String searchTerm);
 
-    @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k WHERE k.izmeklejumaDatums >= :startDate")
+    @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k JOIN FETCH k.pacients JOIN FETCH k.dakteris WHERE k.izmeklejumaDatums >= :startDate")
     List<KolposkopijaIzmeklejumsEntity> findAllByVisitDateAfter(LocalDate startDate);
+
+    @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k JOIN FETCH k.pacients JOIN FETCH k.dakteris WHERE k.izmeklejumaDatums = :date")
     List<KolposkopijaIzmeklejumsEntity> findAllByIzmeklejumaDatums(LocalDate date);
+
+    @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k JOIN FETCH k.pacients JOIN FETCH k.dakteris WHERE k.id = :id")
+    Optional<KolposkopijaIzmeklejumsEntity> findByIdWithFetch(@Param("id") Long id);
+
+    @Query("SELECT k FROM KolposkopijaIzmeklejumsEntity k JOIN FETCH k.pacients JOIN FETCH k.dakteris")
+    List<KolposkopijaIzmeklejumsEntity> findAllWithFetch();
 
 
 }
